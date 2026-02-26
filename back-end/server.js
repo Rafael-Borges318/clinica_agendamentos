@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import agendamentosRoutes from "./routes/agendamentos.js";
-
+console.log("SERVER.JS CARREGADO ✅", process.cwd());
 dotenv.config();
 
 const app = express();
