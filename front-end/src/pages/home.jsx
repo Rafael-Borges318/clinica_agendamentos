@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -7,8 +7,27 @@ export default function Home() {
     if (e.target.tagName === "A") setMenuOpen(false);
   }
 
+  useEffect(() => {
+    function onScroll() {
+      setMenuOpen(false);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    function onHashChange() {
+      setMenuOpen(false);
+    }
+
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
   return (
     <>
+      {/* HEADER */}
       <header className="header">
         <div className="container header-content">
           <div className="logo">
@@ -22,28 +41,36 @@ export default function Home() {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <span></span><span></span><span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
 
           <nav className="nav">
             <ul
               className={`nav-links ${menuOpen ? "open" : ""}`}
               onClick={closeMenuIfLink}
+              id="navLinks"
             >
-              <li><a href="#inicio">Início</a></li>
-              <li><a href="#procedimentos">Procedimentos</a></li>
-              <li><a href="#cursos">Cursos</a></li>
-              <li><a href="#clientes">Clientes</a></li>
-              <li><a href="#localizacao">Localização &amp; Contato</a></li>
+              <li>
+                <a href="#inicio">Início</a>
+              </li>
+              <li>
+                <a href="#procedimentos">Procedimentos</a>
+              </li>
+              <li>
+                <a href="#cursos">Cursos</a>
+              </li>
+              <li>
+                <a href="#clientes">Clientes</a>
+              </li>
+              <li>
+                <a href="#localizacao">Localização &amp; Contato</a>
+              </li>
             </ul>
           </nav>
         </div>
       </header>
-
-      {/* ...o resto do teu JSX continua igual... */}
-    </>
-  );
-}
 
       {/* HERO */}
       <section className="hero" id="inicio">
@@ -153,125 +180,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CURSOS */}
-      <section className="section section-alt" id="cursos">
-        <h2 className="section-title">Cursos para Profissionais</h2>
-        <p className="section-subtitle">
-          Aprenda técnicas essenciais com quem domina a beleza.
-        </p>
-
-        <div className="container cards-grid">
-          <article className="card">
-            <h3>Design Personalizado</h3>
-            <p>
-              Domine o design de sobrancelhas com técnica, precisão e
-              naturalidade.
-            </p>
-
-            <p className="card-detail">
-              • Como alisar as sobrancelhas <br />
-              • Princípios do visagismo <br />
-              • Princípios de biossegurança <br />
-              • Como montar a bancada de forma organizada <br />
-              • Como fazer marcação à mão livre <br />
-              • Como fazer depilação com pinça e cera <br />
-              • Como preparar coloração e henna e como aplicar <br />
-              <br />
-              • Curso com 2 dias (1º teórico, 2º prático), 2 módulos, Coffee
-              break incluso • Apostila online <br />
-              • Certificado <br />
-              • Kit básico <br />• Suporte pós-curso
-            </p>
-
-            <p className="card-price">R$ 449,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
-
-          <article className="card">
-            <h3>Expert em Lash Lifting</h3>
-            <p>
-              Curso completo sobre a técnica mais natural para realçar olhares.
-            </p>
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Química dos produtos
-              <br />
-              • Segurança no manuseio
-              <br />
-              • 3 modelos reais
-              <br />• Apostila online
-            </p>
-            <p className="card-price">R$ 579,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
-
-          <article className="card">
-            <h3>Expert em Brow Lamination</h3>
-            <p>Domine a técnica mais versátil do design de sobrancelhas.</p>
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Química dos produtos
-              <br />
-              • Segurança
-              <br />
-              • 3 modelos
-              <br />• Apostila online
-            </p>
-            <p className="card-price">R$ 579,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
-
-          <article className="card">
-            <h3>Expert em Naturalidade</h3>
-            <p>Lash Lifting + Brow Lamination em um só curso.</p>
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Análise facial
-              <br />
-              • 4 modelos reais
-              <br />• Apostila online
-            </p>
-            <p className="card-price">R$ 989,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
-        </div>
-      </section>
-
       {/* CLIENTES */}
       <section className="section" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
@@ -333,22 +241,6 @@ export default function Home() {
             </p>
             <p>R. Machado de Assis, 282 - Centro</p>
             <p>Osório - RS, 95520-000</p>
-
-            <div className="location-images">
-              <div className="location-photo">
-                <img
-                  src="img/Captura de tela 2025-11-23 Clinica1.png"
-                  alt="Recepção da Clínica"
-                />
-              </div>
-
-              <div className="location-photo">
-                <img
-                  src="img/Captura de tela 2025-11-23 Clinica5.png"
-                  alt="Sala de atendimento"
-                />
-              </div>
-            </div>
 
             <div className="map-placeholder">
               <iframe
