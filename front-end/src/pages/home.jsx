@@ -31,7 +31,7 @@ export default function Home() {
       <header className="header">
         <div className="container header-content">
           <div className="logo">
-            <img src="img/Logo.jpg" alt="Logo Clínica JA" />
+            <img src="img/Logo.jpeg" alt="Logo Clínica JA" />
           </div>
 
           <button
@@ -81,15 +81,6 @@ export default function Home() {
               Especialistas em procedimentos de estética facial e corporal,
               garantindo resultados naturais, seguros e personalizados.
             </p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-            >
-              Agende seu atendimento
-            </a>
           </div>
 
           <div className="hero-image">

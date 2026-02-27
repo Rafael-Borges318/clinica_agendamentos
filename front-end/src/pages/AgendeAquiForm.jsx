@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
-// Ex: http://localhost:3000
 
 export default function AgendeAquiForm() {
   const [servicos, setServicos] = useState([]);
@@ -24,9 +23,7 @@ export default function AgendeAquiForm() {
         if (!res.ok) return;
         const data = await res.json();
         setServicos(Array.isArray(data) ? data : []);
-      } catch {
-        // se não existir /api/servicos, tudo bem: o select fica vazio e você pode digitar id manualmente (não ideal)
-      }
+      } catch {}
     })();
   }, []);
 
@@ -35,9 +32,6 @@ export default function AgendeAquiForm() {
   };
 
   function buildInicioISO(data, hora) {
-    // data: YYYY-MM-DD
-    // hora: HH:MM
-    // monta ISO com fuso -03:00 (padrão do teu backend)
     return `${data}T${hora}:00-03:00`;
   }
 
