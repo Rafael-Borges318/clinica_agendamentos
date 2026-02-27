@@ -2,49 +2,73 @@ import express from "express";
 import { supabase } from "../supabaseClient.js";
 import { adminAuth } from "../middleware/adminAuth.js";
 
-console.log("ARQUIVO agendamentos.js CARREGADO ✅");
+console.log("ARQUIVO agendamentos.js CARREGADO");
 
 const router = express.Router();
 
 function addMinutesToISO(isoString, minutes) {
   const d = new Date(isoString);
-  d.setMinutes(d.getMinutes() + minutes);
+  d.setMinutes(d.getMinutes() + Number(minutes));
   return d.toISOString();
 }
 
-// ✅ ADMIN: listar agendamentos (rota protegida)
-router.post("/admin/agendamentos", adminAuth, async (req, res) => {
-  const { dia } = req.body;
+// ADMIN: listar agendamentos (rota protegida)
+router.get("/admin/agendamentos", adminAuth, async (req, res) => {
+  try {
+    // o dia pode vir em query ou, em último caso, no body
+    const dia = req.query.dia || req.body.dia;
 
-  let query = supabase
-    .from("agendamentos")
-    .select(
-      `
-      id,
-      nome,
-      telefone,
-      inicio,
-      fim,
-      status,
-      parent_id,
-      servico_id,
-      servicos ( nome )
-    `,
-    )
-    .order("inicio", { ascending: true });
+    let query = supabase
+      .from("agendamentos")
+      .select(
+        `
+        id,
+        nome,
+        telefone,
+        inicio,
+        fim,
+        status,
+        parent_id,
+        servico_id,
+        servicos ( nome )
+      `,
+      )
+      .order("inicio", { ascending: true });
 
-  if (dia) {
-    const start = `${dia}T00:00:00-03:00`;
-    const end = `${dia}T23:59:59-03:00`;
-    query = query.gte("inicio", start).lte("inicio", end);
+    if (dia) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dia)) {
+        return res.status(400).json({ error: "Formato de dia inválido" });
+      }
+      // converte para UTC antes de comparar
+      const start = new Date(`${dia}T00:00:00-03:00`).toISOString();
+      const end = new Date(`${dia}T23:59:59-03:00`).toISOString();
+      query = query.gte("inicio", start).lte("inicio", end);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Erro em /admin/agendamentos:", err);
+    return res.status(500).json({ error: "Erro interno" });
   }
-
-  const { data, error } = await query;
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  return res.status(200).json(data);
 });
+
+router.get("/servicos", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("servicos")
+      .select("id, nome")
+      .order("nome", { ascending: true });
+
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Erro em /servicos:", err);
+    return res.status(500).json({ error: "Erro interno" });
+  }
+});
+
 // ✅ CLIENTE: criar agendamento
 router.post("/agendamentos", async (req, res) => {
   try {
