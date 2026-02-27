@@ -786,3 +786,37 @@ avatar-2 {
     padding: 100px 0 60px;
   }
 }
+.agende-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.agende-form input,
+.agende-form select {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  outline: none;
+  background: #fff;
+}
+
+.agende-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.agende-msg {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+
+.agende-whats {
+  margin-top: 8px;
+  font-size: 13px;
+  color: inherit;
+  opacity: 0.8;
+  text-decoration: underline;
+}

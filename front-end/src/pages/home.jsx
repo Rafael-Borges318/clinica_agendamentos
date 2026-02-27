@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import AgendeAquiForm from "./AgendeAquiForm.jsx";
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -71,7 +71,6 @@ export default function Home() {
           </nav>
         </div>
       </header>
-
       {/* HERO */}
       <section className="hero" id="inicio">
         <div className="container hero-content">
@@ -101,7 +100,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* PROCEDIMENTOS */}
       <section className="section" id="procedimentos">
         <h2 className="section-title">Procedimentos Estéticos</h2>
@@ -134,7 +132,7 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img src="img/Nano Fios.jpg" alt="Nano Fios" />
+              <img src="img/Captura de tela 2025-11-23 Nano" alt="Nano Fios" />
             </div>
             <h3>🪄 Nano Fios</h3>
             <p>
@@ -145,7 +143,10 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img src="img/Brow Lamination.jpg" alt="Brow Lamination" />
+              <img
+                src="img/Captura de tela 2025-11-23 Brow"
+                alt="Brow Lamination"
+              />
             </div>
             <h3>🌿 Brow Lamination</h3>
             <p>Alinhamento dos fios para sobrancelhas modernas e definidas.</p>
@@ -179,8 +180,132 @@ export default function Home() {
           </article>
         </div>
       </section>
+      {/* CURSOS */}
+      <section className="section section-alt" id="cursos">
+        <h2 className="section-title">Cursos para Profissionais</h2>
+        <p className="section-subtitle">
+          Aprenda técnicas essenciais com quem domina a beleza.
+        </p>
 
-      {/* CLIENTES */}
+        <div className="container cards-grid">
+          <article className="card">
+            <h3>Design Personalizado</h3>
+            <p>
+              Domine o design de sobrancelhas com técnica, precisão e
+              naturalidade.
+            </p>
+
+            <p className="card-detail">
+              • Como alisar as sobrancelhas <br />
+              • Princípios do visagismo <br />
+              • Princípios de biossegurança <br />
+              • Como montar a bancada de forma organizada <br />
+              • Como fazer marcação à mão livre <br />
+              • Como fazer depilação com pinça e cera <br />
+              • Como preparar coloração e henna e como aplicar <br />
+              <br />
+              • Curso com 2 dias (1º teórico, 2º prático), 2 módulos, Coffee
+              break incluso <br />
+              • Apostila online <br />
+              • Certificado <br />
+              • Kit básico <br />• Suporte pós-curso
+            </p>
+
+            <p className="card-price">R$ 449,90</p>
+
+            <a
+              href="https://wa.me/5551995262780"
+              className="btn-outline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Saiba mais
+            </a>
+          </article>
+
+          <article className="card">
+            <h3>Expert em Lash Lifting</h3>
+            <p>
+              Curso completo sobre a técnica mais natural para realçar olhares.
+            </p>
+
+            <p className="card-detail">
+              • Estrutura da haste
+              <br />
+              • Química dos produtos
+              <br />
+              • Segurança no manuseio
+              <br />
+              • 3 modelos reais
+              <br />• Apostila online
+            </p>
+
+            <p className="card-price">R$ 579,90</p>
+
+            <a
+              href="https://wa.me/5551995262780"
+              className="btn-outline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Saiba mais
+            </a>
+          </article>
+
+          <article className="card">
+            <h3>Expert em Brow Lamination</h3>
+            <p>Domine a técnica mais versátil do design de sobrancelhas.</p>
+
+            <p className="card-detail">
+              • Estrutura da haste
+              <br />
+              • Química dos produtos
+              <br />
+              • Segurança
+              <br />
+              • 3 modelos
+              <br />• Apostila online
+            </p>
+
+            <p className="card-price">R$ 579,90</p>
+
+            <a
+              href="https://wa.me/5551995262780"
+              className="btn-outline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Saiba mais
+            </a>
+          </article>
+
+          <article className="card">
+            <h3>Expert em Naturalidade</h3>
+            <p>Lash Lifting + Brow Lamination em um só curso.</p>
+
+            <p className="card-detail">
+              • Estrutura da haste
+              <br />
+              • Análise facial
+              <br />
+              • 4 modelos reais
+              <br />• Apostila online
+            </p>
+
+            <p className="card-price">R$ 989,90</p>
+
+            <a
+              href="https://wa.me/5551995262780"
+              className="btn-outline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Saiba mais
+            </a>
+          </article>
+        </div>
+      </section>
+      \{/* CLIENTES */}
       <section className="section" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
         <p className="section-subtitle">
@@ -228,7 +353,6 @@ export default function Home() {
           </button>
         </div>
       </section>
-
       {/* LOCALIZAÇÃO */}
       <section className="section section-alt" id="localizacao">
         <h2 className="section-title">Onde Estamos</h2>
@@ -254,22 +378,14 @@ export default function Home() {
 
           <div className="contact-box">
             <h3>Agende Aqui</h3>
-            <p>Entre em contato pelo WhatsApp e garanta seu horário.</p>
+            <p>Preencha e envie seu agendamento. Vamos confirmar com você.</p>
 
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Agendar pelo WhatsApp
-            </a>
+            <AgendeAquiForm />
 
             <p className="contact-note">Atendimento com hora marcada.</p>
           </div>
         </div>
       </section>
-
       {/* FOOTER */}
       <footer className="footer">
         <div className="container footer-content">
