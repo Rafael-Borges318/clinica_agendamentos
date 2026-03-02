@@ -91,6 +91,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       {/* PROCEDIMENTOS */}
       <section className="section" id="procedimentos">
         <h2 className="section-title">Procedimentos Estéticos</h2>
@@ -101,7 +102,7 @@ export default function Home() {
         <div className="container cards-grid">
           <article className="card">
             <div className="card-photo">
-              <img src="img/Novo Lash.jpg" alt="Lash Lifting" />
+              <img src="img/Lash.png" alt="Lash Lifting" />
             </div>
             <h3>👁️ Lash Lifting</h3>
             <p>Curvatura duradoura e natural por até 45 dias.</p>
@@ -109,10 +110,7 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img
-                src="img/Captura de tela 2025-11-23 Pele.png"
-                alt="Limpeza de Pele"
-              />
+              <img src="img/Pele.png" alt="Limpeza de Pele" />
             </div>
             <h3>💆‍♀️ Limpeza de Pele</h3>
             <p>
@@ -123,7 +121,7 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img src="img/Captura de tela 2025-11-23 Nano" alt="Nano Fios" />
+              <img src="img/Nano.png" alt="Nano Fios" />
             </div>
             <h3>🪄 Nano Fios</h3>
             <p>
@@ -134,10 +132,7 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img
-                src="img/Captura de tela 2025-11-23 Brow"
-                alt="Brow Lamination"
-              />
+              <img src="img/brow.png" alt="Brow Lamination" />
             </div>
             <h3>🌿 Brow Lamination</h3>
             <p>Alinhamento dos fios para sobrancelhas modernas e definidas.</p>
@@ -146,7 +141,7 @@ export default function Home() {
           <article className="card">
             <div className="card-photo">
               <img
-                src="img/Captura de tela 2025-11-23 Design.png"
+                src="img/Design.png"
                 alt="Design Personalizado de Sobrancelhas"
               />
             </div>
@@ -159,10 +154,7 @@ export default function Home() {
 
           <article className="card">
             <div className="card-photo">
-              <img
-                src="img/Captura de tela 2025-11-23 Clinica4.png"
-                alt="Clínica JA"
-              />
+              <img src="img/Clinica4.png" alt="Clínica JA" />
             </div>
             <h3>🏩 A Clínica</h3>
             <p>
@@ -257,7 +249,6 @@ export default function Home() {
               • 3 modelos
               <br />• Apostila online
             </p>
-            
 
             <p className="card-price">R$ 579,90</p>
 
@@ -297,7 +288,7 @@ export default function Home() {
           </article>
         </div>
       </section>
-      \{/* CLIENTES */}
+      {/* CLIENTES */}
       <section className="section" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
         <p className="section-subtitle">
