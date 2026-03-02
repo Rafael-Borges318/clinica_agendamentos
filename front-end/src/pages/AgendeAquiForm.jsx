@@ -20,15 +20,19 @@ export default function AgendeAquiForm() {
     (async () => {
       try {
         const res = await fetch(`${API_URL}/api/servicos`);
+        const data = await res.json().catch(() => null);
+
+        console.log("SERVICOS STATUS:", res.status);
+        console.log("SERVICOS DATA:", data);
 
         if (!res.ok) {
-          setMsg("Não consegui carregar os serviços. Verifique o backend.");
+          setMsg(data?.error || "Não consegui carregar os serviços (API).");
           return;
         }
 
-        const data = await res.json();
         setServicos(Array.isArray(data) ? data : []);
-      } catch {
+      } catch (e) {
+        console.log("ERRO FETCH SERVICOS:", e);
         setMsg("Falha ao conectar no backend para buscar serviços.");
       }
     })();
@@ -48,29 +52,27 @@ export default function AgendeAquiForm() {
     setLoading(true);
 
     try {
+      if (!form.servico_id) {
+        setMsg("Escolha um serviço para continuar.");
+        return;
+      }
+
+      const servicoId = String(form.servico_id || "").trim();
+      if (!servicoId) {
+        setMsg("Escolha um serviço para continuar.");
+        return;
+      }
+
       const inicio = buildInicioISO(form.data, form.hora);
-      const servicoIdNum = Number(form.servico_id);
 
       const payload = {
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
-        servico_id: servicoIdNum,
+        servico_id: servicoId,
         inicio,
       };
 
-      // Debug no console do navegador
       console.log("ENVIANDO:", payload);
-
-      if (
-        !payload.nome ||
-        !payload.telefone ||
-        !payload.inicio ||
-        !Number.isFinite(servicoIdNum) ||
-        servicoIdNum <= 0
-      ) {
-        setMsg("Preencha todos os campos (incluindo o serviço).");
-        return;
-      }
 
       const res = await fetch(`${API_URL}/api/agendamentos`, {
         method: "POST",
@@ -89,7 +91,7 @@ export default function AgendeAquiForm() {
         "✅ Pedido enviado! Em breve confirmamos seu horário no WhatsApp.",
       );
       setForm({ nome: "", telefone: "", servico_id: "", data: "", hora: "" });
-    } catch (err) {
+    } catch {
       setMsg("❌ Falha de conexão com o servidor.");
     } finally {
       setLoading(false);
@@ -165,4 +167,7 @@ export default function AgendeAquiForm() {
       </a>
     </form>
   );
+  <button className="btn-outline" disabled={loading || !form.servico_id}>
+    {loading ? "Enviando..." : "Solicitar agendamento"}
+  </button>;
 }
