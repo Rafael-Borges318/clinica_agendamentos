@@ -15,17 +15,24 @@ export default function AgendeAquiForm() {
     hora: "",
   });
 
-  // Buscar serviços (se você tiver esse endpoint — se não tiver, eu já te passo)
+  // ✅ Buscar serviços e mostrar erro se falhar (pra você enxergar o problema)
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch(`${API_URL}/api/servicos`);
-        if (!res.ok) return;
+
+        if (!res.ok) {
+          setMsg("Não consegui carregar os serviços. Verifique o backend.");
+          return;
+        }
+
         const data = await res.json();
         setServicos(Array.isArray(data) ? data : []);
-      } catch {}
+      } catch {
+        setMsg("Falha ao conectar no backend para buscar serviços.");
+      }
     })();
-  }, []);
+  }, [API_URL]);
 
   const onChange = (e) => {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -42,13 +49,28 @@ export default function AgendeAquiForm() {
 
     try {
       const inicio = buildInicioISO(form.data, form.hora);
+      const servicoIdNum = Number(form.servico_id);
 
       const payload = {
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
-        servico_id: Number(form.servico_id),
+        servico_id: servicoIdNum,
         inicio,
       };
+
+      // Debug no console do navegador
+      console.log("ENVIANDO:", payload);
+
+      if (
+        !payload.nome ||
+        !payload.telefone ||
+        !payload.inicio ||
+        !Number.isFinite(servicoIdNum) ||
+        servicoIdNum <= 0
+      ) {
+        setMsg("Preencha todos os campos (incluindo o serviço).");
+        return;
+      }
 
       const res = await fetch(`${API_URL}/api/agendamentos`, {
         method: "POST",
@@ -97,8 +119,12 @@ export default function AgendeAquiForm() {
         value={form.servico_id}
         onChange={onChange}
         required
+        disabled={!servicos.length}
       >
-        <option value="">Selecione o serviço</option>
+        <option value="">
+          {servicos.length ? "Selecione o serviço" : "Carregando serviços..."}
+        </option>
+
         {servicos.map((s) => (
           <option key={s.id} value={s.id}>
             {s.nome}

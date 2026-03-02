@@ -257,6 +257,7 @@ export default function Home() {
               • 3 modelos
               <br />• Apostila online
             </p>
+            
 
             <p className="card-price">R$ 579,90</p>
 
