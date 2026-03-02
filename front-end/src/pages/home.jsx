@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AgendeAquiForm from "./AgendeAquiForm.jsx";
+import Testimonials from "./Testimonials.jsx";
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -81,6 +82,9 @@ export default function Home() {
               Especialistas em procedimentos de estética facial e corporal,
               garantindo resultados naturais, seguros e personalizados.
             </p>
+            <a href="#localizacao" className="btn-gold">
+              Agende seu horário!
+            </a>
           </div>
 
           <div className="hero-image">
@@ -288,6 +292,7 @@ export default function Home() {
           </article>
         </div>
       </section>
+
       {/* CLIENTES */}
       <section className="section" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
@@ -295,46 +300,7 @@ export default function Home() {
           Veja o que as clientes dizem sobre a JA.
         </p>
 
-        <div className="container testimonials">
-          <button className="testimonial-btn" id="prevBtn" type="button">
-            ❮
-          </button>
-
-          <div className="testimonials-wrapper">
-            <div className="testimonial active">
-              <h3>Mariana Silva</h3>
-              <div className="rating-stars">★★★★★</div>
-              <p>
-                Retornaria pelo fato de que além da ótima prossifional sinto
-                algo bom de ti, os resultados, a conversa e o ambiente são
-                simplesmente perfeitos! Tudo que nos mulheres precisamos é disso
-                nosso momento de princesas, pra relaxar e desopilar dos
-                problemas do dia a dia.
-              </p>
-            </div>
-
-            <div className="testimonial">
-              <h3>Camila Andrade</h3>
-              <div className="rating-stars">★★★★★</div>
-              <p>
-                Amo o atendimento, o cuidado e a conversa, tudo maravilhoso!
-              </p>
-            </div>
-
-            <div className="testimonial">
-              <h3>Aline Duarte</h3>
-              <div className="rating-stars">★★★★★</div>
-              <p>
-                Com certeza retornaria, um lugar onde me sinto bem tratada, além
-                de ser um ambiente agradável.
-              </p>
-            </div>
-          </div>
-
-          <button className="testimonial-btn" id="nextBtn" type="button">
-            ❯
-          </button>
-        </div>
+        <Testimonials />
       </section>
       {/* LOCALIZAÇÃO */}
       <section className="section section-alt" id="localizacao">
@@ -346,14 +312,18 @@ export default function Home() {
             <p>
               <strong>Endereço:</strong>
             </p>
-            <p>R. Machado de Assis, 282 - Centro</p>
+            <p>R. Maj. João Marques, 515 - Centro</p>
             <p>Osório - RS, 95520-000</p>
 
             <div className="map-placeholder">
               <iframe
-                src="https://www.google.com/maps?q=R.+Machado+de+Assis,+282,+Osório,+RS&output=embed"
-                loading="lazy"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3459.1250217084917!2d-50.271778024535365!3d-29.889498024108367!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95186606f6082d8d%3A0x4f1921d0f9d1e531!2sR.%20Maj.%20Jo%C3%A3o%20Marques%2C%20515%20-%20Centro%2C%20Os%C3%B3rio%20-%20RS%2C%2095520-000!5e0!3m2!1spt-BR!2sbr!4v1772462196889!5m2!1spt-BR!2sbr"
+                width="100%"
+                height="300"
+                style={{ border: 0 }}
                 allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
                 title="Mapa Clínica JA"
               />
             </div>
