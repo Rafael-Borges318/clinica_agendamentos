@@ -1,5 +1,6 @@
 export function adminAuth(req, res, next) {
-  const { password } = req.body;
+  const password =
+    req.headers["x-admin-password"] || req.query.password || req.body?.password;
 
   if (!password) {
     return res.status(401).json({ error: "Senha obrigatória" });

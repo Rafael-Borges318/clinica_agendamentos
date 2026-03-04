@@ -22,16 +22,22 @@ router.get("/admin/agendamentos", adminAuth, async (req, res) => {
       .from("agendamentos")
       .select(
         `
-        id,
-        nome,
-        telefone,
-        inicio,
-        fim,
-        status,
-        parent_id,
-        servico_id,
-        servicos ( nome )
-      `,
+  id,
+  nome,
+  telefone,
+  inicio,
+  fim,
+  status,
+  parent_id,
+  servico_id,
+  servicos:servico_id (
+    id,
+    nome,
+    duracao_min,
+    manutencao_dias,
+    ativo
+  )
+`,
       )
       .order("inicio", { ascending: true });
 
@@ -50,6 +56,36 @@ router.get("/admin/agendamentos", adminAuth, async (req, res) => {
     return res.status(200).json(data);
   } catch (err) {
     console.error("Erro em /admin/agendamentos:", err);
+    return res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+router.patch("/admin/agendamentos/:id/status", adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body || {};
+
+    const allowed = ["pendente", "confirmado", "cancelado", "concluido"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const { data, error } = await supabase
+      .from("agendamentos")
+      .update({ status })
+      .eq("id", id)
+      .select(
+        `
+        id, nome, telefone, inicio, fim, status,
+        servicos:servico_id ( nome )
+      `,
+      )
+      .single();
+
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Erro PATCH /admin/agendamentos/:id/status:", err);
     return res.status(500).json({ error: "Erro interno" });
   }
 });
