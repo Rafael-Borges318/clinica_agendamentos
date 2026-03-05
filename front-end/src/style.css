@@ -857,3 +857,37 @@ avatar-2 {
 .testimonial-dots .dot.active {
   background: rgba(0, 0, 0, 0.8);
 }
+.agende-horarios {
+  margin-top: 10px;
+}
+
+.agende-horarios-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.agende-hint {
+  opacity: 0.75;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.agende-horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.agende-horario-btn {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 8px;
+  font-weight: 700;
+  background: #fff;
+  cursor: pointer;
+}
+
+.agende-horario-btn.active {
+  border-color: #000;
+  outline: 2px solid #000;
+}

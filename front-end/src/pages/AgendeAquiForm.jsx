@@ -7,15 +7,19 @@ export default function AgendeAquiForm() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // horários disponíveis
+  const [horarios, setHorarios] = useState([]);
+  const [loadingHorarios, setLoadingHorarios] = useState(false);
+  const [selectedInicioISO, setSelectedInicioISO] = useState("");
+
   const [form, setForm] = useState({
     nome: "",
     telefone: "",
     servico_id: "",
-    data: "",
-    hora: "",
+    data: "", // YYYY-MM-DD
   });
 
-  // ✅ Buscar serviços e mostrar erro se falhar (pra você enxergar o problema)
+  // ✅ Buscar serviços
   useEffect(() => {
     (async () => {
       try {
@@ -33,18 +37,81 @@ export default function AgendeAquiForm() {
         setServicos(Array.isArray(data) ? data : []);
       } catch (e) {
         console.log("ERRO FETCH SERVICOS:", e);
-        setMsg("Falha ao conectar no backend para buscar serviços.");
+        if (!res.ok) {
+          setMsg(data?.error || "Não foi possível enviar. Verifique os dados.");
+          return;
+        }
+
+        // ✅ formata YYYY-MM-DD -> DD/MM/YYYY
+        const dataBR = (form.data || "").split("-").reverse().join("/");
+
+        // ✅ pega o label do horário escolhido
+        const horarioLabel =
+          horarios.find((h) => h.inicioISO === selectedInicioISO)?.label || "";
+
+        setMsg(`✅ Agendamento solicitado!
+
+Data: ${dataBR}
+Horário: ${horarioLabel}`);
+
+        // limpa após um tempinho (pra pessoa ver a msg)
+        setTimeout(() => {
+          setForm({ nome: "", telefone: "", servico_id: "", data: "" });
+          setHorarios([]);
+          setSelectedInicioISO("");
+        }, 300);
       }
     })();
-  }, [API_URL]);
+  }, []);
+
+  // ✅ Buscar horários quando escolher serviço + data
+  useEffect(() => {
+    (async () => {
+      try {
+        setMsg("");
+        setHorarios([]);
+        setSelectedInicioISO("");
+
+        if (!form.data || !form.servico_id) return;
+
+        setLoadingHorarios(true);
+
+        const url = `${API_URL}/api/horarios-disponiveis?dia=${encodeURIComponent(
+          form.data,
+        )}&servico_id=${encodeURIComponent(form.servico_id)}`;
+
+        const res = await fetch(url);
+        const data = await res.json().catch(() => ({}));
+
+        console.log("HORARIOS STATUS:", res.status);
+        console.log("HORARIOS DATA:", data);
+
+        if (!res.ok) {
+          setMsg(data?.error || "Não consegui carregar os horários.");
+          return;
+        }
+
+        setHorarios(Array.isArray(data?.horarios) ? data.horarios : []);
+      } catch (e) {
+        console.log("ERRO FETCH HORARIOS:", e);
+        setMsg("Falha ao buscar horários disponíveis.");
+      } finally {
+        setLoadingHorarios(false);
+      }
+    })();
+  }, [form.data, form.servico_id]);
 
   const onChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-  };
+    const { name, value } = e.target;
 
-  function buildInicioISO(data, hora) {
-    return `${data}T${hora}:00-03:00`;
-  }
+    setForm((p) => ({ ...p, [name]: value }));
+
+    // se trocar serviço ou data, limpa seleção de horário
+    if (name === "servico_id" || name === "data") {
+      setSelectedInicioISO("");
+      setHorarios([]);
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -56,23 +123,21 @@ export default function AgendeAquiForm() {
         setMsg("Escolha um serviço para continuar.");
         return;
       }
-
-      const servicoId = String(form.servico_id || "").trim();
-      if (!servicoId) {
-        setMsg("Escolha um serviço para continuar.");
+      if (!form.data) {
+        setMsg("Escolha uma data para continuar.");
         return;
       }
-
-      const inicio = buildInicioISO(form.data, form.hora);
+      if (!selectedInicioISO) {
+        setMsg("Escolha um horário disponível para continuar.");
+        return;
+      }
 
       const payload = {
         nome: form.nome.trim(),
         telefone: form.telefone.trim(),
-        servico_id: servicoId,
-        inicio,
+        servico_id: String(form.servico_id).trim(),
+        inicio: selectedInicioISO,
       };
-
-      console.log("ENVIANDO:", payload);
 
       const res = await fetch(`${API_URL}/api/agendamentos`, {
         method: "POST",
@@ -87,12 +152,13 @@ export default function AgendeAquiForm() {
         return;
       }
 
-      setMsg(
-        "✅ Pedido enviado! Em breve confirmamos seu horário no WhatsApp.",
-      );
-      setForm({ nome: "", telefone: "", servico_id: "", data: "", hora: "" });
-    } catch {
-      setMsg("❌ Falha de conexão com o servidor.");
+      setMsg("Pedido enviado! Em breve confirmamos seu horário no WhatsApp.");
+      setForm({ nome: "", telefone: "", servico_id: "", data: "" });
+      setHorarios([]);
+      setSelectedInicioISO("");
+    } catch (e) {
+      console.log("ERRO SUBMIT:", e);
+      setMsg(`❌ Erro ao enviar: ${e?.message || "desconhecido"}`);
     } finally {
       setLoading(false);
     }
@@ -142,16 +208,48 @@ export default function AgendeAquiForm() {
           onChange={onChange}
           required
         />
-        <input
-          type="time"
-          name="hora"
-          value={form.hora}
-          onChange={onChange}
-          required
-        />
       </div>
 
-      <button className="btn-outline" disabled={loading}>
+      {/* ✅ Horários disponíveis */}
+      <div className="agende-horarios">
+        <div className="agende-horarios-title">Selecione um horário</div>
+
+        {!form.data || !form.servico_id ? (
+          <p className="agende-hint">
+            Escolha o serviço e a data para ver os horários.
+          </p>
+        ) : loadingHorarios ? (
+          <p className="agende-hint">Carregando horários...</p>
+        ) : horarios.length === 0 ? (
+          <p className="agende-hint">
+            Nenhum horário disponível para essa data.
+          </p>
+        ) : (
+          <div className="agende-horarios-grid">
+            {horarios.map((h) => {
+              const active = selectedInicioISO === h.inicioISO;
+              return (
+                <button
+                  key={h.inicioISO}
+                  type="button"
+                  className={`agende-horario-btn ${active ? "active" : ""}`}
+                  onClick={() => setSelectedInicioISO(h.inicioISO)}
+                  aria-pressed={active}
+                >
+                  {h.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <button
+        className="btn-outline"
+        disabled={
+          loading || !form.servico_id || !form.data || !selectedInicioISO
+        }
+      >
         {loading ? "Enviando..." : "Solicitar agendamento"}
       </button>
 
@@ -167,7 +265,4 @@ export default function AgendeAquiForm() {
       </a>
     </form>
   );
-  <button className="btn-outline" disabled={loading || !form.servico_id}>
-    {loading ? "Enviando..." : "Solicitar agendamento"}
-  </button>;
 }
