@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -36,7 +37,8 @@ export default function Admin() {
   const [erro, setErro] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("todos");
 
-  const token = localStorage.getItem("admin_token");
+  const navigate = useNavigate();
+  const adminPassword = localStorage.getItem("admin_password");
 
   async function carregarAgendamentos() {
     setLoading(true);
@@ -44,15 +46,25 @@ export default function Admin() {
     setMsg("");
 
     try {
-      const url = `${API_URL}/admin/agendamentos?dia=${dia}`;
+      const url = `${API_URL}/api/admin/agendamentos?dia=${dia}`;
+      console.log("Buscando em:", url);
 
       const res = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "x-admin-password": adminPassword,
         },
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      console.log("Status:", res.status);
+      console.log("Resposta API:", data);
+
+      if (res.status === 401) {
+        localStorage.removeItem("admin_password");
+        navigate("/admin-login");
+        return;
+      }
 
       if (!res.ok) {
         setErro(data?.error || "Erro ao carregar agendamentos.");
@@ -60,7 +72,13 @@ export default function Admin() {
         return;
       }
 
-      setAgendamentos(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setAgendamentos(data);
+      } else if (Array.isArray(data.agendamentos)) {
+        setAgendamentos(data.agendamentos);
+      } else {
+        setAgendamentos([]);
+      }
     } catch (error) {
       console.error(error);
       setErro("Não foi possível conectar ao servidor.");
@@ -80,15 +98,24 @@ export default function Admin() {
     setErro("");
 
     try {
-      const res = await fetch(`${API_URL}/admin/agendamentos/${id}/cancelar`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/admin/agendamentos/${id}/cancelar`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-password": adminPassword,
+          },
         },
-      });
+      );
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401) {
+        localStorage.removeItem("admin_password");
+        navigate("/admin-login");
+        return;
+      }
 
       if (!res.ok) {
         setErro(data?.error || "Erro ao cancelar agendamento.");
@@ -103,61 +130,18 @@ export default function Admin() {
     }
   }
 
+  function sair() {
+    localStorage.removeItem("admin_password");
+    navigate("/admin-login");
+  }
+
   useEffect(() => {
-    if (!token) {
-      setErro("Token admin não encontrado. Faça login novamente.");
+    if (!adminPassword) {
+      navigate("/admin-login");
       return;
     }
+
     carregarAgendamentos();
-    async function carregarAgendamentos() {
-      setLoading(true);
-      setErro("");
-      setMsg("");
-
-      try {
-        const url = `${API_URL}/admin/agendamentos?dia=${dia}`;
-        console.log("Buscando em:", url);
-        console.log("Token:", token);
-
-        const res = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-
-        console.log("Status da resposta:", res.status);
-        console.log("Resposta da API:", data);
-
-        if (!res.ok) {
-          setErro(data?.error || "Erro ao carregar agendamentos.");
-          setAgendamentos([]);
-          return;
-        }
-
-        // caso o backend retorne direto um array
-        if (Array.isArray(data)) {
-          setAgendamentos(data);
-          return;
-        }
-
-        // caso o backend retorne { agendamentos: [...] }
-        if (Array.isArray(data.agendamentos)) {
-          setAgendamentos(data.agendamentos);
-          return;
-        }
-
-        // fallback
-        setAgendamentos([]);
-      } catch (error) {
-        console.error("Erro no fetch:", error);
-        setErro("Não foi possível conectar ao servidor.");
-        setAgendamentos([]);
-      } finally {
-        setLoading(false);
-      }
-    }
   }, [dia]);
 
   const agendamentosFiltrados = useMemo(() => {
@@ -176,9 +160,14 @@ export default function Admin() {
             </p>
           </div>
 
-          <button style={styles.refreshButton} onClick={carregarAgendamentos}>
-            Atualizar
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button style={styles.refreshButton} onClick={carregarAgendamentos}>
+              Atualizar
+            </button>
+            <button style={styles.logoutButton} onClick={sair}>
+              Sair
+            </button>
+          </div>
         </div>
 
         <div style={styles.filtersCard}>
@@ -311,6 +300,15 @@ const styles = {
   },
   refreshButton: {
     background: "#ff57e3",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    padding: "12px 18px",
+    cursor: "pointer",
+    fontWeight: "600",
+  },
+  logoutButton: {
+    background: "#2b1d26",
     color: "#fff",
     border: "none",
     borderRadius: "10px",
