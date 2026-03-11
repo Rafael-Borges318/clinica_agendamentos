@@ -88,10 +88,21 @@ export default function Admin() {
     }
   }
 
-  async function cancelarAgendamento(id) {
-    const confirmar = window.confirm(
-      "Tem certeza que deseja cancelar este agendamento?",
-    );
+  async function atualizarStatusAgendamento(id, status) {
+    let textoConfirmacao = "";
+    let textoSucesso = "";
+
+    if (status === "cancelado") {
+      textoConfirmacao = "Tem certeza que deseja cancelar este agendamento?";
+      textoSucesso = "Agendamento cancelado com sucesso.";
+    }
+
+    if (status === "concluido") {
+      textoConfirmacao = "Tem certeza que deseja concluir este procedimento?";
+      textoSucesso = "Procedimento concluído com sucesso.";
+    }
+
+    const confirmar = window.confirm(textoConfirmacao);
     if (!confirmar) return;
 
     setMsg("");
@@ -99,13 +110,14 @@ export default function Admin() {
 
     try {
       const res = await fetch(
-        `${API_URL}/api/admin/agendamentos/${id}/cancelar`,
+        `${API_URL}/api/admin/agendamentos/${id}/status`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             "x-admin-password": adminPassword,
           },
+          body: JSON.stringify({ status }),
         },
       );
 
@@ -118,16 +130,24 @@ export default function Admin() {
       }
 
       if (!res.ok) {
-        setErro(data?.error || "Erro ao cancelar agendamento.");
+        setErro(data?.error || "Erro ao atualizar agendamento.");
         return;
       }
 
-      setMsg("Agendamento cancelado com sucesso.");
+      setMsg(textoSucesso);
       carregarAgendamentos();
     } catch (error) {
       console.error(error);
-      setErro("Não foi possível cancelar o agendamento.");
+      setErro("Não foi possível atualizar o agendamento.");
     }
+  }
+
+  function cancelarAgendamento(id) {
+    atualizarStatusAgendamento(id, "cancelado");
+  }
+
+  function concluirAgendamento(id) {
+    atualizarStatusAgendamento(id, "concluido");
   }
 
   function sair() {
@@ -191,6 +211,7 @@ export default function Admin() {
               <option value="todos">Todos</option>
               <option value="pendente">Pendente</option>
               <option value="confirmado">Confirmado</option>
+              <option value="concluido">Concluído</option>
               <option value="cancelado">Cancelado</option>
             </select>
           </div>
@@ -241,22 +262,34 @@ export default function Admin() {
                             ? styles.badgePending
                             : item.status === "confirmado"
                               ? styles.badgeConfirmed
-                              : styles.badgeCanceled),
+                              : item.status === "concluido"
+                                ? styles.badgeDone
+                                : styles.badgeCanceled),
                         }}
                       >
                         {item.status || "-"}
                       </span>
                     </td>
                     <td style={styles.td}>
-                      {item.status !== "cancelado" ? (
-                        <button
-                          style={styles.cancelButton}
-                          onClick={() => cancelarAgendamento(item.id)}
-                        >
-                          Cancelar
-                        </button>
-                      ) : (
+                      {item.status === "cancelado" ? (
                         <span style={styles.cancelledText}>Cancelado</span>
+                      ) : item.status === "concluido" ? (
+                        <span style={styles.doneText}>Concluído</span>
+                      ) : (
+                        <div style={styles.actions}>
+                          <button
+                            style={styles.doneButton}
+                            onClick={() => concluirAgendamento(item.id)}
+                          >
+                            Concluir
+                          </button>
+                          <button
+                            style={styles.cancelButton}
+                            onClick={() => cancelarAgendamento(item.id)}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -406,12 +439,30 @@ const styles = {
     color: "#9a6700",
   },
   badgeConfirmed: {
+    background: "#e8f0fe",
+    color: "#1a73e8",
+  },
+  badgeDone: {
     background: "#eafbf0",
     color: "#137333",
   },
   badgeCanceled: {
     background: "#fdecec",
     color: "#b42318",
+  },
+  actions: {
+    display: "flex",
+    gap: "8px",
+    flexWrap: "wrap",
+  },
+  doneButton: {
+    background: "#137333",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    padding: "10px 14px",
+    cursor: "pointer",
+    fontWeight: "600",
   },
   cancelButton: {
     background: "#b42318",
@@ -424,6 +475,10 @@ const styles = {
   },
   cancelledText: {
     color: "#8a8a8a",
+    fontWeight: "600",
+  },
+  doneText: {
+    color: "#137333",
     fontWeight: "600",
   },
 };

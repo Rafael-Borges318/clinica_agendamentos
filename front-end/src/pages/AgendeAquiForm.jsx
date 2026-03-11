@@ -7,7 +7,6 @@ export default function AgendeAquiForm() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // horários disponíveis
   const [horarios, setHorarios] = useState([]);
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [selectedInicioISO, setSelectedInicioISO] = useState("");
@@ -16,7 +15,7 @@ export default function AgendeAquiForm() {
     nome: "",
     telefone: "",
     servico_id: "",
-    data: "", // YYYY-MM-DD
+    data: "",
   });
 
   useEffect(() => {
@@ -36,38 +35,14 @@ export default function AgendeAquiForm() {
         setServicos(Array.isArray(data) ? data : []);
       } catch (e) {
         console.log("ERRO FETCH SERVICOS:", e);
-        if (!res.ok) {
-          setMsg(data?.error || "Não foi possível enviar. Verifique os dados.");
-          return;
-        }
-
-        // ✅ formata YYYY-MM-DD -> DD/MM/YYYY
-        const dataBR = (form.data || "").split("-").reverse().join("/");
-
-        // ✅ pega o label do horário escolhido
-        const horarioLabel =
-          horarios.find((h) => h.inicioISO === selectedInicioISO)?.label || "";
-
-        setMsg(`✅ Agendamento solicitado!
-
-Data: ${dataBR}
-Horário: ${horarioLabel}`);
-
-        // limpa após um tempinho (pra pessoa ver a msg)
-        setTimeout(() => {
-          setForm({ nome: "", telefone: "", servico_id: "", data: "" });
-          setHorarios([]);
-          setSelectedInicioISO("");
-        }, 300);
+        setMsg("Não foi possível carregar os serviços.");
       }
     })();
   }, []);
 
-  // ✅ Buscar horários quando escolher serviço + data
   useEffect(() => {
     (async () => {
       try {
-        setMsg("");
         setHorarios([]);
         setSelectedInicioISO("");
 
@@ -105,7 +80,6 @@ Horário: ${horarioLabel}`);
 
     setForm((p) => ({ ...p, [name]: value }));
 
-    // se trocar serviço ou data, limpa seleção de horário
     if (name === "servico_id" || name === "data") {
       setSelectedInicioISO("");
       setHorarios([]);
@@ -151,7 +125,22 @@ Horário: ${horarioLabel}`);
         return;
       }
 
-      setMsg("Pedido enviado! Em breve confirmamos seu horário no WhatsApp.");
+      const dataBR = (form.data || "").split("-").reverse().join("/");
+      const horarioLabel =
+        horarios.find((h) => h.inicioISO === selectedInicioISO)?.label || "";
+      const servicoNome =
+        servicos.find((s) => s.id === form.servico_id)?.nome || "Serviço";
+      const nomeCliente = form.nome.trim();
+
+      setMsg(` Agendamento realizado com sucesso!
+
+Nome: ${nomeCliente}
+Serviço: ${servicoNome}
+Data: ${dataBR}
+Horário: ${horarioLabel}
+
+Em breve confirmaremos seu horário pelo WhatsApp.`);
+
       setForm({ nome: "", telefone: "", servico_id: "", data: "" });
       setHorarios([]);
       setSelectedInicioISO("");
@@ -209,7 +198,6 @@ Horário: ${horarioLabel}`);
         />
       </div>
 
-      {/* ✅ Horários disponíveis */}
       <div className="agende-horarios">
         <div className="agende-horarios-title">Selecione um horário</div>
 

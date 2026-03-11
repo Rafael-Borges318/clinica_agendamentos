@@ -20,18 +20,29 @@ export default function AdminLogin() {
   }
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Login Admin</h1>
-      <form onSubmit={entrar}>
-        <input
-          type="password"
-          placeholder="Senha do admin"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        <button type="submit">Entrar</button>
-      </form>
-      {erro && <p style={{ color: "red" }}>{erro}</p>}
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h1 style={styles.title}>Login Admin</h1>
+        <p style={styles.subtitle}>
+          Acesse o painel administrativo da Clínica JA
+        </p>
+
+        <form onSubmit={entrar}>
+          {erro && <p style={styles.erro}>{erro}</p>}
+
+          <input
+            type="password"
+            placeholder="Digite a senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            style={styles.input}
+          />
+
+          <button type="submit" style={styles.button}>
+            Entrar
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -42,7 +53,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#f8f6f8",
+    background:
+      "linear-gradient(135deg, #f8f6f8 0%, #fdf1fb 50%, #f8f6f8 100%)",
     padding: "20px",
     fontFamily: "Poppins, sans-serif",
   },
@@ -51,16 +63,18 @@ const styles = {
     maxWidth: "420px",
     background: "#fff",
     borderRadius: "18px",
-    padding: "28px",
+    padding: "32px",
     boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
   },
   title: {
     margin: 0,
     color: "#2b1d26",
+    fontSize: "2rem",
   },
   subtitle: {
     color: "#6b5b65",
-    marginBottom: "20px",
+    margin: "8px 0 24px",
+    lineHeight: 1.5,
   },
   input: {
     width: "100%",
@@ -70,6 +84,7 @@ const styles = {
     marginBottom: "14px",
     fontSize: "1rem",
     boxSizing: "border-box",
+    outline: "none",
   },
   button: {
     width: "100%",
@@ -79,10 +94,12 @@ const styles = {
     borderRadius: "10px",
     padding: "14px",
     fontWeight: "700",
+    fontSize: "1rem",
     cursor: "pointer",
   },
   erro: {
     color: "#b42318",
     marginBottom: "10px",
+    fontSize: "0.95rem",
   },
 };

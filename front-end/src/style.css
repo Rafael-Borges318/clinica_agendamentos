@@ -811,6 +811,14 @@ avatar-2 {
 .agende-msg {
   margin: 6px 0 0;
   font-size: 14px;
+  white-space: pre-line;
+  margin-top: 16px;
+  background: #e8fff0;
+  border: 1px solid #b6ebc5;
+  color: #146c2e;
+  padding: 14px 16px;
+  border-radius: 12px;
+  white-space: pre-line;
 }
 
 .agende-whats {
