@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AgendeAquiForm from "./AgendeAquiForm.jsx";
-import Testimonials from "./Testimonials.jsx";
+import Testimonials from "../components/Testimonials.jsx";
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
