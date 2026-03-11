@@ -19,7 +19,6 @@ export default function AgendeAquiForm() {
     data: "", // YYYY-MM-DD
   });
 
-  // ✅ Buscar serviços
   useEffect(() => {
     (async () => {
       try {
