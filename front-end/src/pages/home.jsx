@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import AgendeAquiForm from "../components/AgendeAquiForm";
+import AgendeAquiForm from "../components/AgendeAquiForm.jsx";
 import Testimonials from "../components/Testimonials.jsx";
 
 export default function Home() {
