@@ -1,14 +1,29 @@
-export function adminAuth(req, res, next) {
-  const password =
-    req.headers["x-admin-password"] || req.query.password || req.body?.password;
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
-  if (!password) {
-    return res.status(401).json({ error: "Senha obrigatória" });
+export function authMiddleware(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Token não informado" });
+    }
+
+    const token = authHeader.slice(7);
+    const payload = jwt.verify(token, env.JWT_SECRET);
+
+    if (payload.role !== "admin") {
+      return res.status(403).json({ error: "Acesso negado" });
+    }
+
+    req.admin = {
+      sub: payload.sub,
+      role: payload.role,
+      email: payload.email,
+    };
+
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Token inválido ou expirado" });
   }
-
-  if (password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Senha incorreta" });
-  }
-
-  next();
 }

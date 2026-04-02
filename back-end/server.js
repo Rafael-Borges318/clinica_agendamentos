@@ -1,20 +1,6 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import agendamentosRoutes from "./routes/agendamentos.js";
-import servicosRoutes from "./routes/servicos.js";
+import app from "./src/app.js";
+import { env } from "./src/config/env.js";
 
-console.log("SERVER.JS CARREGADO ✅", process.cwd());
-dotenv.config();
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => res.send("API OK ✅"));
-
-app.use("/api", agendamentosRoutes);
-app.use("/api", servicosRoutes);
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+app.listen(env.PORT, () => {
+  console.log(`Servidor rodando na porta ${env.PORT}`);
+});

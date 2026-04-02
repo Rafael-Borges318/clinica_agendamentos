@@ -14,12 +14,12 @@ export function overlaps(aStart, aEnd, bStart, bEnd) {
 }
 
 export function getWindowsForDow(dow) {
-  if (dow === 0) return []; // domingo fechado
-  if (dow === 6) return [["08:00", "12:00"]]; // sábado
+  if (dow === 0) return [];
+  if (dow === 6) return [["08:00", "12:00"]];
   return [
     ["08:00", "12:00"],
     ["13:00", "17:00"],
-  ]; // seg-sex
+  ];
 }
 
 export function toISO(dia, hhmm, tz = "-03:00") {
