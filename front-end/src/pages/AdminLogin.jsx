@@ -1,49 +1,100 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isAuthenticated, saveToken } from "../lib/auth";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminLogin() {
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
   const navigate = useNavigate();
 
-  function entrar(e) {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/admin", { replace: true });
+    }
+  }, [navigate]);
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
+    setLoading(true);
 
-    if (!senha.trim()) {
-      setErro("Digite a senha do admin.");
-      return;
+    try {
+      const res = await fetch(`${API_URL}/api/admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Erro ao fazer login");
+      }
+
+      saveToken(data.token);
+      navigate("/admin", { replace: true });
+    } catch (err) {
+      setErro(err.message || "Falha no login");
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem("admin_password", senha.trim());
-    navigate("/admin");
   }
 
   return (
-    <div style={styles.page}>
+    <main style={styles.page}>
       <div style={styles.card}>
         <h1 style={styles.title}>Login Admin</h1>
         <p style={styles.subtitle}>
-          Acesse o painel administrativo da Clínica JA
+          Entre com seu email e senha para acessar o painel da clínica.
         </p>
 
-        <form onSubmit={entrar}>
-          {erro && <p style={styles.erro}>{erro}</p>}
-
+        <form onSubmit={handleSubmit}>
           <input
-            type="password"
-            placeholder="Digite a senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            name="email"
+            type="email"
+            placeholder="Seu email"
+            value={form.email}
+            onChange={handleChange}
+            required
             style={styles.input}
           />
 
-          <button type="submit" style={styles.button}>
-            Entrar
+          <input
+            name="password"
+            type="password"
+            placeholder="Sua senha"
+            value={form.password}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+
+          {erro ? <p style={styles.erro}>{erro}</p> : null}
+
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }
 
