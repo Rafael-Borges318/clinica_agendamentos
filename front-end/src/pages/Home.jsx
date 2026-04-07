@@ -29,7 +29,6 @@ export default function Home() {
 
   return (
     <>
-      {/* HEADER */}
       <header className="header">
         <div className="container header-content">
           <div className="logo">
@@ -73,7 +72,7 @@ export default function Home() {
           </nav>
         </div>
       </header>
-      {/* HERO */}
+
       <section className="hero" id="inicio">
         <div className="container hero-content">
           <div className="hero-text">
@@ -97,7 +96,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PROCEDIMENTOS */}
       <section className="section" id="procedimentos">
         <h2 className="section-title">Procedimentos Estéticos</h2>
         <p className="section-subtitle">
@@ -168,7 +166,7 @@ export default function Home() {
           </article>
         </div>
       </section>
-      {/* CURSOS */}
+
       <section className="section section-alt" id="cursos">
         <h2 className="section-title">Cursos para Profissionais</h2>
         <p className="section-subtitle">
@@ -294,7 +292,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CLIENTES */}
       <section className="section" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
         <p className="section-subtitle">
@@ -303,7 +300,7 @@ export default function Home() {
 
         <Testimonials />
       </section>
-      {/* LOCALIZAÇÃO */}
+
       <section className="section section-alt" id="localizacao">
         <h2 className="section-title">Onde Estamos</h2>
         <p className="section-subtitle">Venha conhecer nossa clínica.</p>
@@ -340,7 +337,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* FOOTER */}
+
       <footer className="footer">
         <div className="container footer-content">
           <p>&copy; 2025 Clínica JA. Todos os direitos reservados.</p>

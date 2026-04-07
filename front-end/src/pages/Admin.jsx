@@ -12,6 +12,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
+  const [filtroPeriodo, setFiltroPeriodo] = useState("todos");
+  const [dataSelecionada, setDataSelecionada] = useState("");
 
   function logout() {
     removeToken();
@@ -37,6 +39,62 @@ export default function Admin() {
 
     return data;
   }
+
+  function isSameDay(dateA, dateB) {
+    return (
+      dateA.getFullYear() === dateB.getFullYear() &&
+      dateA.getMonth() === dateB.getMonth() &&
+      dateA.getDate() === dateB.getDate()
+    );
+  }
+
+  function getStartOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function getEndOfWeek(date) {
+    const d = getStartOfWeek(date);
+    d.setDate(d.getDate() + 6);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  }
+
+  const agendamentosFiltrados = agendamentos.filter((ag) => {
+    const dataAg = new Date(ag.inicio);
+    const hoje = new Date();
+
+    if (dataSelecionada) {
+      const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
+      const dataFiltro = new Date(ano, mes - 1, dia);
+      return isSameDay(dataAg, dataFiltro);
+    }
+
+    if (filtroPeriodo === "todos") return true;
+
+    if (filtroPeriodo === "dia") {
+      return isSameDay(dataAg, hoje);
+    }
+
+    if (filtroPeriodo === "semana") {
+      const inicioSemana = getStartOfWeek(hoje);
+      const fimSemana = getEndOfWeek(hoje);
+      return dataAg >= inicioSemana && dataAg <= fimSemana;
+    }
+
+    if (filtroPeriodo === "mes") {
+      return (
+        dataAg.getFullYear() === hoje.getFullYear() &&
+        dataAg.getMonth() === hoje.getMonth()
+      );
+    }
+
+    return true;
+  });
 
   async function carregarDados() {
     try {
@@ -165,10 +223,44 @@ export default function Admin() {
               )}
             </section>
 
+            <section style={styles.filtersCard}>
+              <div style={styles.filterGroup}>
+                <label style={styles.label}>Filtrar por período</label>
+                <select
+                  style={styles.input}
+                  value={filtroPeriodo}
+                  onChange={(e) => {
+                    setFiltroPeriodo(e.target.value);
+                    setDataSelecionada("");
+                  }}
+                >
+                  <option value="todos">Todos os agendamentos</option>
+                  <option value="mes">Agendamentos do mês</option>
+                  <option value="semana">Agendamentos da semana</option>
+                  <option value="dia">Agendamentos do dia</option>
+                </select>
+              </div>
+
+              <div style={styles.filterGroup}>
+                <label style={styles.label}>Ou escolher uma data</label>
+                <input
+                  type="date"
+                  style={styles.input}
+                  value={dataSelecionada}
+                  onChange={(e) => {
+                    setDataSelecionada(e.target.value);
+                    if (e.target.value) {
+                      setFiltroPeriodo("todos");
+                    }
+                  }}
+                />
+              </div>
+            </section>
+
             <section>
               <h2 style={{ marginBottom: "12px" }}>Agendamentos</h2>
 
-              {agendamentos.length === 0 ? (
+              {agendamentosFiltrados.length === 0 ? (
                 <div style={styles.infoBox}>Nenhum agendamento encontrado.</div>
               ) : (
                 <div style={styles.tableWrapper}>
@@ -183,7 +275,7 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {agendamentos.map((ag) => (
+                      {agendamentosFiltrados.map((ag) => (
                         <tr key={ag.id}>
                           <td style={styles.td}>{ag.nome}</td>
                           <td style={styles.td}>{ag.telefone}</td>
@@ -386,23 +478,5 @@ const styles = {
     display: "flex",
     gap: "8px",
     flexWrap: "wrap",
-  },
-  refreshButton: {
-    background: "#ff57e3",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    padding: "12px 18px",
-    cursor: "pointer",
-    fontWeight: "600",
-  },
-  logoutButton: {
-    background: "#2b1d26",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    padding: "12px 18px",
-    cursor: "pointer",
-    fontWeight: "600",
   },
 };

@@ -18,6 +18,13 @@ export default function AgendeAquiForm() {
     data: "",
   });
 
+  function getTodayLocalDate() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60 * 1000);
+    return local.toISOString().split("T")[0];
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -193,6 +200,7 @@ Em breve confirmaremos seu horário pelo WhatsApp.`);
           type="date"
           name="data"
           value={form.data}
+          min={getTodayLocalDate()}
           onChange={onChange}
           required
         />
