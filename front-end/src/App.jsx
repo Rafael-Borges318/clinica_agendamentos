@@ -11,7 +11,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
 
-        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route
+          path="/painel-ja-privado-administrativo"
+          element={<AdminLogin />}
+        />
 
         <Route
           path="/admin"
