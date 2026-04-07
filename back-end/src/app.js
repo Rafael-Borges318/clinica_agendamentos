@@ -10,6 +10,7 @@ import agendamentosRoutes from "./routes/agendamentos.js";
 import servicosRoutes from "./routes/servicos.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
 
