@@ -5,9 +5,9 @@ import hpp from "hpp";
 import rateLimit from "express-rate-limit";
 
 import { env } from "./config/env.js";
+import authRoutes from "./routes/auth.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
 import servicosRoutes from "./routes/servicos.js";
-import authRoutes from "./routes/auth.js";
 
 const app = express();
 
