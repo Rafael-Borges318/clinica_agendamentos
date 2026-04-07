@@ -149,9 +149,21 @@ export async function criarAgendamento(input) {
   const servico = await getServicoValidoById(servico_id);
   const duracaoMin = Number(servico.duracao_min);
 
-  const diaStr = inicioDate.toLocaleDateString("en-CA", {
-    timeZone: "America/Sao_Paulo",
-  });
+  if (diaStr < hojeStr) {
+    throw buildError("Não é possível agendar em datas passadas.", 400);
+  }
+
+  if (diaStr === hojeStr) {
+    const nowMs = Date.now();
+    const minStartMs = ceilToStep(nowMs, stepMin);
+
+    if (inicioMs < minStartMs) {
+      throw buildError(
+        "Não é possível agendar em horário passado (para hoje).",
+        400,
+      );
+    }
+  }
 
   const dow = new Date(`${diaStr}T00:00:00${tz}`).getDay();
   const windows = getWindowsForDow(dow);
