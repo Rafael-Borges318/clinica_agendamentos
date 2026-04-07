@@ -43,7 +43,18 @@ export default function AdminLogin() {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+
+      let data;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error("Resposta inesperada da API:", text);
+        throw new Error(
+          "Servidor respondeu em formato inválido. Verifique o backend publicado.",
+        );
+      }
 
       if (!res.ok) {
         throw new Error(data?.error || "Erro ao fazer login");
