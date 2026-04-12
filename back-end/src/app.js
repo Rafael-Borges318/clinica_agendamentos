@@ -8,11 +8,14 @@ import { env } from "./config/env.js";
 import authRoutes from "./routes/auth.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
 import servicosRoutes from "./routes/servicos.js";
+import anamnesesRoutes from "./routes/anamneses.js";
 
 const app = express();
 app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
+
+app.use("/api/anamneses", anamnesesRoutes);
 
 app.use(
   helmet({

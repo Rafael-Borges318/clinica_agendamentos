@@ -37,6 +37,12 @@ export async function listAdminAgendamentos(
   return data || [];
 }
 
+export async function createAgendamento(data) {
+  const { error } = await supabase.from("agendamentos").insert([data]);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 export async function findAgendamentosByDia(startDayISO, endDayISO) {
   const { data, error } = await supabase
     .from("agendamentos")

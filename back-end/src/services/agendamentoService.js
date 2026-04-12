@@ -5,7 +5,8 @@ import {
   updateAgendamentoStatus,
 } from "../repositories/agendamentoRepository.js";
 import { getServicoValidoById } from "./servicoService.js";
-import { sanitizeText, normalizePhone } from "../utils/sanitize.js";
+import { sanitizeText } from "../utils/sanitize.js";
+import { normalizarTelefone } from "../utils/telefone.js";
 import {
   addMinutesToISO,
   ceilToStep,
@@ -14,6 +15,11 @@ import {
   toISO,
   toMsLocal,
 } from "../utils/timeUtils.js";
+import {
+  findClienteByTelefone,
+  createCliente,
+} from "../repositories/clienteRepository.js";
+import { findAnamneseValida } from "../repositories/anamneseRepository.js";
 
 function buildError(message, statusCode = 400) {
   const error = new Error(message);
@@ -125,11 +131,15 @@ export async function criarAgendamento(input) {
   const stepMin = 30;
 
   const nome = sanitizeText(input.nome);
-  const telefone = normalizePhone(input.telefone);
+  const telefone = normalizarTelefone(input.telefone);
   const { servico_id, inicio } = input;
 
+  if (!nome) {
+    throw buildError("Nome inválido.", 400);
+  }
+
   if (telefone.length < 10 || telefone.length > 11) {
-    throw buildError("Telefone inválido", 400);
+    throw buildError("Telefone inválido.", 400);
   }
 
   const inicioDate = new Date(inicio);
@@ -138,8 +148,8 @@ export async function criarAgendamento(input) {
     throw buildError("Campo 'inicio' inválido (ISO).", 400);
   }
 
-  const m = inicioDate.getMinutes();
-  if (!(m === 0 || m === 30)) {
+  const minuto = inicioDate.getMinutes();
+  if (!(minuto === 0 || minuto === 30)) {
     throw buildError(
       "Horário inválido: use apenas slots de 30 em 30 (ex: 16:00 ou 16:30).",
       400,
@@ -148,6 +158,28 @@ export async function criarAgendamento(input) {
 
   const servico = await getServicoValidoById(servico_id);
   const duracaoMin = Number(servico.duracao_min);
+
+  let cliente = await findClienteByTelefone(telefone);
+
+  if (!cliente) {
+    cliente = await createCliente({
+      nome,
+      telefone,
+    });
+  }
+
+  let precisaAnamnese = false;
+
+  if (servico.exige_anamnese) {
+    const anamnese = await findAnamneseValida(
+      cliente.id,
+      servico.tipo_anamnese,
+    );
+
+    if (!anamnese) {
+      precisaAnamnese = true;
+    }
+  }
 
   const diaStr = inicioDate.toLocaleDateString("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -209,7 +241,7 @@ export async function criarAgendamento(input) {
 
   if (conflita) {
     throw buildError(
-      "Horário indisponível — conflito com outro agendamento",
+      "Horário indisponível — conflito com outro agendamento.",
       409,
     );
   }
@@ -220,6 +252,7 @@ export async function criarAgendamento(input) {
   let inserted;
   try {
     inserted = await insertAgendamento({
+      cliente_id: cliente.id,
       servico_id,
       inicio: inicioISO,
       fim: fimISO,
@@ -229,21 +262,24 @@ export async function criarAgendamento(input) {
     });
   } catch (err) {
     const msg = err.message || "";
+
     if (
       msg.toLowerCase().includes("overlap") ||
       msg.toLowerCase().includes("exclusion") ||
       msg.toLowerCase().includes("constraint")
     ) {
       throw buildError(
-        "Horário indisponível — conflito com outro agendamento",
+        "Horário indisponível — conflito com outro agendamento.",
         409,
       );
     }
+
     throw err;
   }
 
   if (servico.manutencao_dias) {
     const manutencaoInicio = new Date(inicioISO);
+
     manutencaoInicio.setDate(
       manutencaoInicio.getDate() + Number(servico.manutencao_dias),
     );
@@ -258,6 +294,7 @@ export async function criarAgendamento(input) {
 
     try {
       const manutencao = await insertAgendamento({
+        cliente_id: cliente.id,
         servico_id,
         inicio: manutencaoInicioISO,
         fim: manutencaoFimISO,
@@ -267,15 +304,23 @@ export async function criarAgendamento(input) {
         parent_id: inserted.id,
       });
 
-      return { inserted, manutencao };
+      return {
+        inserted,
+        manutencao,
+        precisa_anamnese: precisaAnamnese,
+      };
     } catch {
       return {
         inserted,
+        precisa_anamnese: precisaAnamnese,
         warning:
           "Agendamento principal criado. Falha ao criar manutenção automática (conflito). Marque manualmente.",
       };
     }
   }
 
-  return inserted;
+  return {
+    inserted,
+    precisa_anamnese: precisaAnamnese,
+  };
 }
