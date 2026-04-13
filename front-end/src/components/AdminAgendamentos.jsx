@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { authHeaders, removeToken } from "../lib/auth";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -189,6 +191,7 @@ export default function AdminAgendamentos() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
   const [selecionado, setSelecionado] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     carregarAgendamentos();
@@ -199,15 +202,17 @@ export default function AdminAgendamentos() {
       setLoading(true);
       setMsg("");
 
-      const token = localStorage.getItem("admin_token");
       const query = dia ? `?dia=${encodeURIComponent(dia)}` : "";
 
       const res = await fetch(`${API_URL}/api/admin/agendamentos${query}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: authHeaders(),
       });
+
+      if (res.status === 401) {
+        removeToken();
+        navigate("/admin-login", { replace: true });
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
 
@@ -229,19 +234,20 @@ export default function AdminAgendamentos() {
 
   async function atualizarStatus(id, status) {
     try {
-      const token = localStorage.getItem("admin_token");
-
       const res = await fetch(
         `${API_URL}/api/admin/agendamentos/${id}/status`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: authHeaders(),
           body: JSON.stringify({ status }),
         },
       );
+
+      if (res.status === 401) {
+        removeToken();
+        navigate("/admin-login", { replace: true });
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
 
