@@ -3,6 +3,9 @@ import {
   insertAgendamento,
   listAdminAgendamentos,
   updateAgendamentoStatus,
+  countVisitasClienteNoMes,
+  countVisitasClienteTotal,
+  findUltimaVisitaCliente,
 } from "../repositories/agendamentoRepository.js";
 import { getServicoValidoById } from "./servicoService.js";
 import { sanitizeText } from "../utils/sanitize.js";
@@ -28,14 +31,68 @@ function buildError(message, statusCode = 400) {
 }
 
 export async function listarAgendamentosAdmin(dia) {
-  if (!dia) {
-    return listAdminAgendamentos();
+  let start = null;
+  let end = null;
+
+  if (dia) {
+    start = new Date(`${dia}T00:00:00-03:00`).toISOString();
+    end = new Date(`${dia}T23:59:59-03:00`).toISOString();
   }
 
-  const start = new Date(`${dia}T00:00:00-03:00`).toISOString();
-  const end = new Date(`${dia}T23:59:59-03:00`).toISOString();
+  const agendamentos = await listAdminAgendamentos(start, end);
 
-  return listAdminAgendamentos(start, end);
+  // cálculo do mês atual
+  const now = new Date();
+  const inicioMes = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+  ).toISOString();
+  const fimMes = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+  ).toISOString();
+
+  const resultado = await Promise.all(
+    agendamentos.map(async (ag) => {
+      if (!ag.cliente_id) {
+        return ag;
+      }
+
+      const [totalVisitas, visitasMes, ultimaVisita, anamnese] =
+        await Promise.all([
+          countVisitasClienteTotal(ag.cliente_id),
+          countVisitasClienteNoMes(ag.cliente_id, inicioMes, fimMes),
+          findUltimaVisitaCliente(ag.cliente_id),
+          ag.servicos?.tipo_anamnese
+            ? findAnamneseValida(ag.cliente_id, ag.servicos.tipo_anamnese)
+            : null,
+        ]);
+
+      return {
+        ...ag,
+
+        cliente: {
+          id: ag.cliente_id,
+          total_visitas: totalVisitas,
+          visitas_mes: visitasMes,
+          ultima_visita: ultimaVisita?.inicio || null,
+          tipo: totalVisitas <= 1 ? "nova" : "recorrente",
+        },
+
+        anamnese: {
+          existe: !!anamnese,
+          tipo: ag.servicos?.tipo_anamnese || null,
+        },
+      };
+    }),
+  );
+
+  return resultado;
 }
 
 export async function alterarStatusAgendamento(id, status) {
