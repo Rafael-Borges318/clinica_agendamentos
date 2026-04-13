@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AnamneseForm from "./AnamneseForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,6 +11,9 @@ export default function AgendeAquiForm() {
   const [horarios, setHorarios] = useState([]);
   const [loadingHorarios, setLoadingHorarios] = useState(false);
   const [selectedInicioISO, setSelectedInicioISO] = useState("");
+
+  const [mostrarAnamnese, setMostrarAnamnese] = useState(false);
+  const [dadosAnamnese, setDadosAnamnese] = useState(null);
 
   const [form, setForm] = useState({
     nome: "",
@@ -23,6 +27,27 @@ export default function AgendeAquiForm() {
     const offset = now.getTimezoneOffset();
     const local = new Date(now.getTime() - offset * 60 * 1000);
     return local.toISOString().split("T")[0];
+  }
+
+  function abrirWhatsApp({
+    nomeCliente,
+    servicoNome,
+    dataBR,
+    horarioLabel,
+    telefone,
+  }) {
+    const numeroClinica = "5551995262780";
+
+    const texto = `Olá! Meu nome é ${nomeCliente}.
+Realizei um pré-agendamento pelo site.
+
+Serviço: ${servicoNome}
+Data: ${dataBR}
+Horário: ${horarioLabel}
+Telefone: ${telefone}`;
+
+    const url = `https://wa.me/${numeroClinica}?text=${encodeURIComponent(texto)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   useEffect(() => {
@@ -85,7 +110,7 @@ export default function AgendeAquiForm() {
   const onChange = (e) => {
     const { name, value } = e.target;
 
-    setForm((p) => ({ ...p, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
 
     if (name === "servico_id" || name === "data") {
       setSelectedInicioISO("");
@@ -99,14 +124,26 @@ export default function AgendeAquiForm() {
     setLoading(true);
 
     try {
+      if (!form.nome.trim()) {
+        setMsg("Informe seu nome para continuar.");
+        return;
+      }
+
+      if (!form.telefone.trim()) {
+        setMsg("Informe seu WhatsApp para continuar.");
+        return;
+      }
+
       if (!form.servico_id) {
         setMsg("Escolha um serviço para continuar.");
         return;
       }
+
       if (!form.data) {
         setMsg("Escolha uma data para continuar.");
         return;
       }
+
       if (!selectedInicioISO) {
         setMsg("Escolha um horário disponível para continuar.");
         return;
@@ -135,11 +172,32 @@ export default function AgendeAquiForm() {
       const dataBR = (form.data || "").split("-").reverse().join("/");
       const horarioLabel =
         horarios.find((h) => h.inicioISO === selectedInicioISO)?.label || "";
-      const servicoNome =
-        servicos.find((s) => s.id === form.servico_id)?.nome || "Serviço";
+      const servicoSelecionado =
+        servicos.find((s) => s.id === form.servico_id) || null;
+      const servicoNome = servicoSelecionado?.nome || "Serviço";
       const nomeCliente = form.nome.trim();
+      const telefoneCliente = form.telefone.trim();
 
-      setMsg(` Agendamento realizado com sucesso!
+      if (data?.precisa_anamnese) {
+        setDadosAnamnese({
+          telefone: telefoneCliente,
+          tipo:
+            data?.tipo_anamnese || servicoSelecionado?.tipo_anamnese || "geral",
+          nomeCliente,
+          servicoNome,
+          dataBR,
+          horarioLabel,
+        });
+
+        setMostrarAnamnese(true);
+
+        setMsg(`Agendamento realizado com sucesso!
+
+Antes de finalizar, precisamos que você preencha sua ficha de anamnese.`);
+        return;
+      }
+
+      setMsg(`Agendamento realizado com sucesso!
 
 Nome: ${nomeCliente}
 Serviço: ${servicoNome}
@@ -147,6 +205,14 @@ Data: ${dataBR}
 Horário: ${horarioLabel}
 
 Em breve confirmaremos seu horário pelo WhatsApp.`);
+
+      abrirWhatsApp({
+        nomeCliente,
+        servicoNome,
+        dataBR,
+        horarioLabel,
+        telefone: telefoneCliente,
+      });
 
       setForm({ nome: "", telefone: "", servico_id: "", data: "" });
       setHorarios([]);
@@ -158,6 +224,58 @@ Em breve confirmaremos seu horário pelo WhatsApp.`);
       setLoading(false);
     }
   };
+
+  if (mostrarAnamnese && dadosAnamnese) {
+    return (
+      <div className="agende-form">
+        <AnamneseForm
+          telefone={dadosAnamnese.telefone}
+          tipo={dadosAnamnese.tipo}
+          onSuccess={() => {
+            setMostrarAnamnese(false);
+
+            setMsg(`Agendamento realizado com sucesso!
+
+Nome: ${dadosAnamnese.nomeCliente}
+Serviço: ${dadosAnamnese.servicoNome}
+Data: ${dadosAnamnese.dataBR}
+Horário: ${dadosAnamnese.horarioLabel}
+
+Ficha de anamnese enviada com sucesso.
+Em breve confirmaremos seu horário pelo WhatsApp.`);
+
+            abrirWhatsApp({
+              nomeCliente: dadosAnamnese.nomeCliente,
+              servicoNome: dadosAnamnese.servicoNome,
+              dataBR: dadosAnamnese.dataBR,
+              horarioLabel: dadosAnamnese.horarioLabel,
+              telefone: dadosAnamnese.telefone,
+            });
+
+            setForm({ nome: "", telefone: "", servico_id: "", data: "" });
+            setHorarios([]);
+            setSelectedInicioISO("");
+            setDadosAnamnese(null);
+          }}
+        />
+
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => {
+            setMostrarAnamnese(false);
+            setDadosAnamnese(null);
+            setMsg("Preenchimento da anamnese cancelado.");
+          }}
+          style={{ marginTop: "12px" }}
+        >
+          Voltar
+        </button>
+
+        {msg && <p className="agende-msg">{msg}</p>}
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className="agende-form">
@@ -223,6 +341,7 @@ Em breve confirmaremos seu horário pelo WhatsApp.`);
           <div className="agende-horarios-grid">
             {horarios.map((h) => {
               const active = selectedInicioISO === h.inicioISO;
+
               return (
                 <button
                   key={h.inicioISO}

@@ -1,5 +1,5 @@
 import express from "express";
-import { createAnamneseController } from "../repositories/anamneseController.js";
+import { createAnamneseController } from "../controllers/anamneseController.js";
 
 const router = express.Router();
 

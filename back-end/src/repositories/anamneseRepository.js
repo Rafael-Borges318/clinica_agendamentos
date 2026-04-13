@@ -1,4 +1,4 @@
-import { supabase } from "../config/supabaseClient";
+import { supabase } from "../config/supabaseClient.js";
 
 export async function findAnamneseValida(cliente_id, tipo) {
   const { data, error } = await supabase

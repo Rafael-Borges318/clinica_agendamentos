@@ -15,8 +15,6 @@ app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
 
-app.use("/api/anamneses", anamnesesRoutes);
-
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -52,6 +50,7 @@ app.get("/", (req, res) => {
 app.use("/api", authRoutes);
 app.use("/api", agendamentosRoutes);
 app.use("/api", servicosRoutes);
+app.use("/api/anamneses", anamnesesRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "Rota não encontrada" });
@@ -70,5 +69,6 @@ app.use((err, req, res, next) => {
     error: statusCode >= 500 ? "Erro interno" : err.message,
   });
 });
-
+console.log("FRONTEND_URL:", env.FRONTEND_URL);
+console.log("ADMIN_URL:", env.ADMIN_URL);
 export default app;
