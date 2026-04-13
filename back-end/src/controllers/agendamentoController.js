@@ -76,6 +76,9 @@ export async function postAgendamento(req, res, next) {
     const data = await criarAgendamento(parsed.data);
     return res.status(201).json(data);
   } catch (err) {
-    return next(err);
+    console.error("ERRO postAgendamento:", err);
+    return res.status(err.statusCode || 500).json({
+      error: err.message || "Erro interno",
+    });
   }
 }

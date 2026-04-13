@@ -11,21 +11,22 @@ export async function findAnamneseValida(cliente_id, tipo) {
     .maybeSingle();
 
   if (error) {
-    throw new Error("Anamnese não encontrada");
+    throw error;
   }
 
   return data;
 }
 
-export async function createAnamnese(cliente_id, tipo, respostas) {
+export async function createAnamnese({ cliente_id, tipo, respostas }) {
   const { data, error } = await supabase
     .from("anamneses")
-    .insert({ cliente_id, tipo, respostas })
+    .insert([{ cliente_id, tipo, respostas }])
     .select()
     .single();
 
   if (error) {
-    throw new Error("Erro ao criar anamnese");
+    throw error;
   }
+
   return data;
 }

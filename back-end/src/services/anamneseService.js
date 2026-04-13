@@ -1,6 +1,5 @@
 import { normalizarTelefone } from "../utils/telefone.js";
 import { findClienteByTelefone } from "../repositories/clienteRepository.js";
-
 import { createAnamnese } from "../repositories/anamneseRepository.js";
 
 export async function createAnamneseService({ telefone, tipo, respostas }) {

@@ -5,34 +5,25 @@ export async function findClienteByTelefone(telefone) {
     .from("clientes")
     .select("*")
     .eq("telefone", telefone)
-    .single();
+    .maybeSingle();
+
   if (error) {
-    throw new Error("Cliente não encontrado");
+    throw error;
   }
-  return data;
+
+  return data; // se não achar, vem null
 }
 
-export async function createCliente(nome, telefone) {
+export async function createCliente({ nome, telefone }) {
   const { data, error } = await supabase
     .from("clientes")
-    .insert({ nome, telefone })
+    .insert([{ nome, telefone }])
     .select()
     .single();
 
   if (error) {
-    throw new Error("Erro ao criar cliente");
+    throw error;
   }
-  return data;
-}
 
-export async function findClienteById(id) {
-  const { data, error } = await supabase
-    .from("clientes")
-    .select("*")
-    .eq("id", id)
-    .single();
-  if (error) {
-    throw new Error("Cliente não encontrado");
-  }
   return data;
 }

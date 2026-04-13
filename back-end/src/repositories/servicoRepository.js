@@ -3,7 +3,9 @@ import { supabase } from "../config/supabaseClient.js";
 export async function findServicoById(id) {
   const { data, error } = await supabase
     .from("servicos")
-    .select("id, nome, duracao_min, manutencao_dias, ativo")
+    .select(
+      "id, nome, duracao_min, manutencao_dias, ativo, exige_anamnese, tipo_anamnese",
+    )
     .eq("id", id)
     .single();
 
@@ -14,7 +16,7 @@ export async function findServicoById(id) {
 export async function listServicosAtivos() {
   const { data, error } = await supabase
     .from("servicos")
-    .select("id, nome")
+    .select("id, nome, exige_anamnese, tipo_anamnese")
     .eq("ativo", true)
     .order("nome", { ascending: true });
 
@@ -25,7 +27,9 @@ export async function listServicosAtivos() {
 export async function listServicosAdmin() {
   const { data, error } = await supabase
     .from("servicos")
-    .select("id, nome, duracao_min, manutencao_dias, ativo")
+    .select(
+      "id, nome, duracao_min, manutencao_dias, ativo, exige_anamnese, tipo_anamnese",
+    )
     .order("nome", { ascending: true });
 
   if (error) throw new Error(error.message);
@@ -37,7 +41,9 @@ export async function updateServico(id, patch) {
     .from("servicos")
     .update(patch)
     .eq("id", id)
-    .select("id, nome, duracao_min, manutencao_dias, ativo")
+    .select(
+      "id, nome, duracao_min, manutencao_dias, ativo, exige_anamnese, tipo_anamnese",
+    )
     .single();
 
   if (error) throw new Error(error.message);
