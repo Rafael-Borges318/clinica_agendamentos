@@ -29,27 +29,6 @@ export default function AgendeAquiForm() {
     return local.toISOString().split("T")[0];
   }
 
-  function abrirWhatsApp({
-    nomeCliente,
-    servicoNome,
-    dataBR,
-    horarioLabel,
-    telefone,
-  }) {
-    const numeroClinica = "5551995262780";
-
-    const texto = `Olá! Meu nome é ${nomeCliente}.
-Realizei um pré-agendamento pelo site.
-
-Serviço: ${servicoNome}
-Data: ${dataBR}
-Horário: ${horarioLabel}
-Telefone: ${telefone}`;
-
-    const url = `https://wa.me/${numeroClinica}?text=${encodeURIComponent(texto)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-
   useEffect(() => {
     (async () => {
       try {
@@ -60,7 +39,7 @@ Telefone: ${telefone}`;
         console.log("SERVICOS DATA:", data);
 
         if (!res.ok) {
-          setMsg(data?.error || "Não consegui carregar os serviços (API).");
+          setMsg(data?.error || "Não consegui carregar os serviços.");
           return;
         }
 
@@ -204,22 +183,14 @@ Serviço: ${servicoNome}
 Data: ${dataBR}
 Horário: ${horarioLabel}
 
-Em breve confirmaremos seu horário pelo WhatsApp.`);
-
-      abrirWhatsApp({
-        nomeCliente,
-        servicoNome,
-        dataBR,
-        horarioLabel,
-        telefone: telefoneCliente,
-      });
+Seu horário foi registrado com sucesso. Em breve entraremos em contato para confirmação.`);
 
       setForm({ nome: "", telefone: "", servico_id: "", data: "" });
       setHorarios([]);
       setSelectedInicioISO("");
     } catch (e) {
       console.log("ERRO SUBMIT:", e);
-      setMsg(`❌ Erro ao enviar: ${e?.message || "desconhecido"}`);
+      setMsg(`Erro ao enviar: ${e?.message || "desconhecido"}`);
     } finally {
       setLoading(false);
     }
@@ -242,15 +213,7 @@ Data: ${dadosAnamnese.dataBR}
 Horário: ${dadosAnamnese.horarioLabel}
 
 Ficha de anamnese enviada com sucesso.
-Em breve confirmaremos seu horário pelo WhatsApp.`);
-
-            abrirWhatsApp({
-              nomeCliente: dadosAnamnese.nomeCliente,
-              servicoNome: dadosAnamnese.servicoNome,
-              dataBR: dadosAnamnese.dataBR,
-              horarioLabel: dadosAnamnese.horarioLabel,
-              telefone: dadosAnamnese.telefone,
-            });
+Seu horário foi registrado e em breve entraremos em contato para confirmação.`);
 
             setForm({ nome: "", telefone: "", servico_id: "", data: "" });
             setHorarios([]);

@@ -899,3 +899,60 @@ avatar-2 {
   border-color: #000;
   outline: 2px solid #000;
 }
+
+.anamnese-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.anamnese-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0;
+}
+
+.anamnese-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.anamnese-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.anamnese-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.anamnese-input,
+.anamnese-textarea {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.anamnese-input:focus,
+.anamnese-textarea:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+.anamnese-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
