@@ -72,23 +72,26 @@ export async function listarAgendamentosAdmin(dia) {
             ? findAnamneseValida(ag.cliente_id, ag.servicos.tipo_anamnese)
             : null,
         ]);
+        return {
+          ...ag,
 
-      return {
-        ...ag,
+          cliente: {
+            id: ag.cliente_id,
+            total_visitas: totalVisitas,
+            visitas_mes: visitasMes,
+            ultima_visita: ultimaVisita?.inicio || null,
+            tipo: totalVisitas <= 1 ? "nova" : "recorrente",
+          },
 
-        cliente: {
-          id: ag.cliente_id,
-          total_visitas: totalVisitas,
-          visitas_mes: visitasMes,
-          ultima_visita: ultimaVisita?.inicio || null,
-          tipo: totalVisitas <= 1 ? "nova" : "recorrente",
-        },
+          anamnese: {
+            existe: !!anamnese,
+            tipo: anamnese?.tipo || ag.servicos?.tipo_anamnese || null,
+            respostas: anamnese?.respostas || null,
+            created_at: anamnese?.created_at || null,
+          },
 
-        anamnese: {
-          existe: !!anamnese,
-          tipo: ag.servicos?.tipo_anamnese || null,
-        },
-      };
+          historico: [],
+        };
     }),
   );
 
