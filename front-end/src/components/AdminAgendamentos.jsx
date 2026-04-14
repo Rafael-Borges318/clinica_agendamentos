@@ -26,8 +26,8 @@ function formatarHora(iso) {
   });
 }
 
-function statusLabel(status, anamnese) {
-  if (anamnese && anamnese.existe === false) {
+function statusLabel(status, anamnese, servico) {
+  if (servico?.exige_anamnese && anamnese && anamnese.existe === false) {
     return "Aguardando anamnese";
   }
 
@@ -45,8 +45,8 @@ function statusLabel(status, anamnese) {
   }
 }
 
-function statusClass(status, anamnese) {
-  if (anamnese && anamnese.existe === false) {
+function statusClass(status, anamnese, servico) {
+  if (servico?.exige_anamnese && anamnese && anamnese.existe === false) {
     return "badge badge-anamnese";
   }
 
@@ -193,10 +193,15 @@ export default function AdminAgendamentos() {
   const [selecionado, setSelecionado] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    carregarAgendamentos();
-  }, [dia]);
+useEffect(() => {
+  carregarAgendamentos();
 
+  const interval = setInterval(() => {
+    carregarAgendamentos();
+  }, 60000); // 1 minuto
+
+  return () => clearInterval(interval);
+}, [dia]);
   async function carregarAgendamentos() {
     try {
       setLoading(true);
@@ -282,9 +287,9 @@ export default function AdminAgendamentos() {
         item.telefone?.includes(busca);
 
       const statusVisual =
-        item.anamnese && item.anamnese.existe === false
-          ? "aguardando_anamnese"
-          : item.status;
+  item.servicos?.exige_anamnese && item.anamnese && item.anamnese.existe === false
+    ? "aguardando_anamnese"
+    : item.status;
 
       const matchStatus = !filtroStatus || statusVisual === filtroStatus;
 
@@ -303,7 +308,10 @@ export default function AdminAgendamentos() {
       concluidos: agendamentosFiltrados.filter((a) => a.status === "concluido")
         .length,
       aguardandoAnamnese: agendamentosFiltrados.filter(
-        (a) => a.anamnese && a.anamnese.existe === false,
+        (a) =>
+    a.servicos?.exige_anamnese &&
+    a.anamnese &&
+    a.anamnese.existe === false,
       ).length,
     };
   }, [agendamentosFiltrados]);

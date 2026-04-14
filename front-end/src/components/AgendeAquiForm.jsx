@@ -160,6 +160,7 @@ export default function AgendeAquiForm() {
       if (data?.precisa_anamnese) {
         setDadosAnamnese({
           telefone: telefoneCliente,
+          servico_id: form.servico_id,
           tipo:
             data?.tipo_anamnese || servicoSelecionado?.tipo_anamnese || "geral",
           nomeCliente,
@@ -201,6 +202,7 @@ Seu horário foi registrado com sucesso. Em breve entraremos em contato para con
       <div className="agende-form">
         <AnamneseForm
           telefone={dadosAnamnese.telefone}
+          servico_id={dadosAnamnese.servico_id}
           tipo={dadosAnamnese.tipo}
           onSuccess={() => {
             setMostrarAnamnese(false);

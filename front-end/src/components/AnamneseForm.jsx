@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function AnamneseForm({ telefone, tipo, onSuccess }) {
+export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -24,6 +24,7 @@ export default function AnamneseForm({ telefone, tipo, onSuccess }) {
     e.preventDefault();
     setMsg("");
     setLoading(true);
+    console.log("ENVIANDO ANAMNESE:", { telefone, servico_id, respostas });
 
     try {
       const res = await fetch(`${API_URL}/api/anamneses`, {
@@ -33,7 +34,7 @@ export default function AnamneseForm({ telefone, tipo, onSuccess }) {
         },
         body: JSON.stringify({
           telefone,
-          tipo,
+          servico_id,
           respostas,
         }),
       });
