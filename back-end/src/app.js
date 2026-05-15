@@ -21,9 +21,15 @@ app.use(
   }),
 );
 
+const allowedOrigins = [env.FRONTEND_URL, env.ADMIN_URL];
+
+if (env.NODE_ENV !== "production") {
+  allowedOrigins.push("http://localhost:5173", "http://localhost:5174");
+}
+
 app.use(
   cors({
-    origin: [env.FRONTEND_URL, env.ADMIN_URL],
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: false,
@@ -69,6 +75,4 @@ app.use((err, req, res, next) => {
     error: statusCode >= 500 ? "Erro interno" : err.message,
   });
 });
-console.log("FRONTEND_URL:", env.FRONTEND_URL);
-console.log("ADMIN_URL:", env.ADMIN_URL);
 export default app;

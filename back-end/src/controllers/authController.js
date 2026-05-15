@@ -13,13 +13,10 @@ export async function adminLogin(req, res, next) {
 
     const { email, password } = parsed.data;
 
-    if (email !== env.ADMIN_EMAIL) {
-      return res.status(401).json({ error: "Credenciais inválidas" });
-    }
-
+    // bcrypt sempre executa independente do e-mail para evitar timing attack
     const ok = await bcrypt.compare(password, env.ADMIN_PASSWORD_HASH);
 
-    if (!ok) {
+    if (email !== env.ADMIN_EMAIL || !ok) {
       return res.status(401).json({ error: "Credenciais inválidas" });
     }
 

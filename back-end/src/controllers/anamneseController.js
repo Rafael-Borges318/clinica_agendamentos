@@ -1,10 +1,17 @@
+import { createAnamneseSchema } from "../schemas/anamneseSchema.js";
 import { createAnamneseService } from "../services/anamneseService.js";
 
-export async function createAnamneseController(req, res) {
+export async function createAnamneseController(req, res, next) {
   try {
-    const result = await createAnamneseService(req.body);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const parsed = createAnamneseSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const result = await createAnamneseService(parsed.data);
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
   }
 }

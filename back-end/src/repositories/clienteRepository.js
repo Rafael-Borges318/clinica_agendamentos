@@ -3,27 +3,21 @@ import { supabase } from "../config/supabaseClient.js";
 export async function findClienteByTelefone(telefone) {
   const { data, error } = await supabase
     .from("clientes")
-    .select("*")
+    .select("id, nome, telefone, created_at")
     .eq("telefone", telefone)
     .maybeSingle();
 
-  if (error) {
-    throw error;
-  }
-
-  return data; // se não achar, vem null
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function createCliente({ nome, telefone }) {
   const { data, error } = await supabase
     .from("clientes")
     .insert([{ nome, telefone }])
-    .select()
+    .select("id, nome, telefone, created_at")
     .single();
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw new Error(error.message);
   return data;
 }

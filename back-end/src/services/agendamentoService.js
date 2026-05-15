@@ -10,6 +10,7 @@ import {
 import { getServicoValidoById } from "./servicoService.js";
 import { sanitizeText } from "../utils/sanitize.js";
 import { normalizarTelefone } from "../utils/telefone.js";
+import { buildError } from "../utils/errors.js";
 import {
   addMinutesToISO,
   ceilToStep,
@@ -24,38 +25,23 @@ import {
 } from "../repositories/clienteRepository.js";
 import { findAnamneseValida } from "../repositories/anamneseRepository.js";
 
-function buildError(message, statusCode = 400) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
+const TZ = "-03:00";
+const STEP_MIN = 30;
 
 export async function listarAgendamentosAdmin(dia) {
   let start = null;
   let end = null;
 
   if (dia) {
-    start = new Date(`${dia}T00:00:00-03:00`).toISOString();
-    end = new Date(`${dia}T23:59:59-03:00`).toISOString();
+    start = new Date(`${dia}T00:00:00${TZ}`).toISOString();
+    end = new Date(`${dia}T23:59:59${TZ}`).toISOString();
   }
 
   const agendamentos = await listAdminAgendamentos(start, end);
 
-  // cálculo do mês atual
   const now = new Date();
-  const inicioMes = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1,
-  ).toISOString();
-  const fimMes = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-  ).toISOString();
+  const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const fimMes = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   const resultado = await Promise.all(
     agendamentos.map(async (ag) => {
@@ -72,26 +58,24 @@ export async function listarAgendamentosAdmin(dia) {
             ? findAnamneseValida(ag.cliente_id, ag.servicos.tipo_anamnese)
             : null,
         ]);
-        return {
-          ...ag,
 
-          cliente: {
-            id: ag.cliente_id,
-            total_visitas: totalVisitas,
-            visitas_mes: visitasMes,
-            ultima_visita: ultimaVisita?.inicio || null,
-            tipo: totalVisitas <= 1 ? "nova" : "recorrente",
-          },
-
-          anamnese: {
-            existe: !!anamnese,
-            tipo: anamnese?.tipo || ag.servicos?.tipo_anamnese || null,
-            respostas: anamnese?.respostas || null,
-            created_at: anamnese?.created_at || null,
-          },
-
-          historico: [],
-        };
+      return {
+        ...ag,
+        cliente: {
+          id: ag.cliente_id,
+          total_visitas: totalVisitas,
+          visitas_mes: visitasMes,
+          ultima_visita: ultimaVisita?.inicio || null,
+          tipo: totalVisitas <= 1 ? "nova" : "recorrente",
+        },
+        anamnese: {
+          existe: !!anamnese,
+          tipo: anamnese?.tipo || ag.servicos?.tipo_anamnese || null,
+          respostas: anamnese?.respostas || null,
+          created_at: anamnese?.created_at || null,
+        },
+        historico: [],
+      };
     }),
   );
 
@@ -103,13 +87,10 @@ export async function alterarStatusAgendamento(id, status) {
 }
 
 export async function listarHorariosDisponiveis({ dia, servico_id }) {
-  const stepMin = 30;
-  const tz = "-03:00";
-
   const servico = await getServicoValidoById(servico_id);
   const duracaoMin = Number(servico.duracao_min);
 
-  const dow = new Date(`${dia}T00:00:00${tz}`).getDay();
+  const dow = new Date(`${dia}T00:00:00${TZ}`).getDay();
   const windows = getWindowsForDow(dow);
 
   if (windows.length === 0) {
@@ -117,15 +98,15 @@ export async function listarHorariosDisponiveis({ dia, servico_id }) {
       dia,
       servico_id,
       duracao_min: duracaoMin,
-      stepMin,
+      stepMin: STEP_MIN,
       total: 0,
       horarios: [],
       info: "Fechado neste dia",
     };
   }
 
-  const startDayISO = toISO(dia, "00:00", tz);
-  const endDayISO = toISO(dia, "23:59", tz);
+  const startDayISO = toISO(dia, "00:00", TZ);
+  const endDayISO = toISO(dia, "23:59", TZ);
 
   const ags = await findAgendamentosByDia(startDayISO, endDayISO);
 
@@ -138,20 +119,20 @@ export async function listarHorariosDisponiveis({ dia, servico_id }) {
   const todayStr = new Date().toLocaleDateString("en-CA", {
     timeZone: "America/Sao_Paulo",
   });
-  const minStartMsToday = ceilToStep(nowMs, stepMin);
+  const minStartMsToday = ceilToStep(nowMs, STEP_MIN);
 
-  const stepMs = stepMin * 60 * 1000;
+  const stepMs = STEP_MIN * 60 * 1000;
   const durMs = duracaoMin * 60 * 1000;
 
   const disponiveis = [];
 
   for (const [winStart, winEnd] of windows) {
-    let t = toMsLocal(dia, winStart, tz);
-    const endWin = toMsLocal(dia, winEnd, tz);
+    let t = toMsLocal(dia, winStart, TZ);
+    const endWin = toMsLocal(dia, winEnd, TZ);
 
     if (dia === todayStr) {
       t = Math.max(t, minStartMsToday);
-      t = ceilToStep(t, stepMin);
+      t = ceilToStep(t, STEP_MIN);
     }
 
     for (; t + durMs <= endWin; t += stepMs) {
@@ -179,7 +160,7 @@ export async function listarHorariosDisponiveis({ dia, servico_id }) {
     dia,
     servico_id,
     duracao_min: duracaoMin,
-    stepMin,
+    stepMin: STEP_MIN,
     total: disponiveis.length,
     horarios: disponiveis,
     windows,
@@ -187,9 +168,6 @@ export async function listarHorariosDisponiveis({ dia, servico_id }) {
 }
 
 export async function criarAgendamento(input) {
-  const tz = "-03:00";
-  const stepMin = 30;
-
   const nome = sanitizeText(input.nome);
   const telefone = normalizarTelefone(input.telefone);
   const { servico_id, inicio } = input;
@@ -222,20 +200,13 @@ export async function criarAgendamento(input) {
   let cliente = await findClienteByTelefone(telefone);
 
   if (!cliente) {
-    cliente = await createCliente({
-      nome,
-      telefone,
-    });
+    cliente = await createCliente({ nome, telefone });
   }
 
   let precisaAnamnese = false;
 
   if (servico.exige_anamnese) {
-    const anamnese = await findAnamneseValida(
-      cliente.id,
-      servico.tipo_anamnese,
-    );
-
+    const anamnese = await findAnamneseValida(cliente.id, servico.tipo_anamnese);
     if (!anamnese) {
       precisaAnamnese = true;
     }
@@ -253,7 +224,7 @@ export async function criarAgendamento(input) {
     throw buildError("Não é possível agendar em datas passadas.", 400);
   }
 
-  const dow = new Date(`${diaStr}T00:00:00${tz}`).getDay();
+  const dow = new Date(`${diaStr}T00:00:00${TZ}`).getDay();
   const windows = getWindowsForDow(dow);
 
   if (windows.length === 0) {
@@ -262,13 +233,13 @@ export async function criarAgendamento(input) {
 
   const hh = String(inicioDate.getHours()).padStart(2, "0");
   const mm = String(inicioDate.getMinutes()).padStart(2, "0");
-  const inicioMs = new Date(`${diaStr}T${hh}:${mm}:00${tz}`).getTime();
+  const inicioMs = new Date(`${diaStr}T${hh}:${mm}:00${TZ}`).getTime();
   const durMs = duracaoMin * 60 * 1000;
   const fimMs = inicioMs + durMs;
 
   const dentroDeAlgumaJanela = windows.some(([wStart, wEnd]) => {
-    const wStartMs = toMsLocal(diaStr, wStart, tz);
-    const wEndMs = toMsLocal(diaStr, wEnd, tz);
+    const wStartMs = toMsLocal(diaStr, wStart, TZ);
+    const wEndMs = toMsLocal(diaStr, wEnd, TZ);
     return inicioMs >= wStartMs && fimMs <= wEndMs;
   });
 
@@ -278,7 +249,7 @@ export async function criarAgendamento(input) {
 
   if (diaStr === hojeStr) {
     const nowMs = Date.now();
-    const minStartMs = ceilToStep(nowMs, stepMin);
+    const minStartMs = ceilToStep(nowMs, STEP_MIN);
 
     if (inicioMs < minStartMs) {
       throw buildError(
@@ -288,8 +259,8 @@ export async function criarAgendamento(input) {
     }
   }
 
-  const startDayISO = toISO(diaStr, "00:00", tz);
-  const endDayISO = toISO(diaStr, "23:59", tz);
+  const startDayISO = toISO(diaStr, "00:00", TZ);
+  const endDayISO = toISO(diaStr, "23:59", TZ);
 
   const ags = await findAgendamentosByDia(startDayISO, endDayISO);
 
@@ -300,10 +271,7 @@ export async function criarAgendamento(input) {
   });
 
   if (conflita) {
-    throw buildError(
-      "Horário indisponível — conflito com outro agendamento.",
-      409,
-    );
+    throw buildError("Horário indisponível — conflito com outro agendamento.", 409);
   }
 
   const inicioISO = new Date(inicioMs).toISOString();
@@ -328,10 +296,7 @@ export async function criarAgendamento(input) {
       msg.toLowerCase().includes("exclusion") ||
       msg.toLowerCase().includes("constraint")
     ) {
-      throw buildError(
-        "Horário indisponível — conflito com outro agendamento.",
-        409,
-      );
+      throw buildError("Horário indisponível — conflito com outro agendamento.", 409);
     }
 
     throw err;
@@ -346,7 +311,7 @@ export async function criarAgendamento(input) {
 
     const manMin = manutencaoInicio.getMinutes();
     if (!(manMin === 0 || manMin === 30)) {
-      manutencaoInicio.setTime(ceilToStep(manutencaoInicio.getTime(), stepMin));
+      manutencaoInicio.setTime(ceilToStep(manutencaoInicio.getTime(), STEP_MIN));
     }
 
     const manutencaoInicioISO = manutencaoInicio.toISOString();
@@ -364,11 +329,7 @@ export async function criarAgendamento(input) {
         parent_id: inserted.id,
       });
 
-      return {
-        inserted,
-        manutencao,
-        precisa_anamnese: precisaAnamnese,
-      };
+      return { inserted, manutencao, precisa_anamnese: precisaAnamnese };
     } catch {
       return {
         inserted,
@@ -379,8 +340,5 @@ export async function criarAgendamento(input) {
     }
   }
 
-  return {
-    inserted,
-    precisa_anamnese: precisaAnamnese,
-  };
+  return { inserted, precisa_anamnese: precisaAnamnese };
 }

@@ -5,12 +5,7 @@ import {
   updateServico,
 } from "../repositories/servicoRepository.js";
 import { sanitizeText } from "../utils/sanitize.js";
-
-function buildError(message, statusCode = 400) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
+import { buildError } from "../utils/errors.js";
 
 export async function getServicosAtivos() {
   return listServicosAtivos();
