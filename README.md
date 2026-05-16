@@ -148,5 +148,5 @@ A aplicação está em produção no **Render** (free tier):
 
 **Rafael Borges de Souza Lima**  
 Estudante de Análise e Desenvolvimento de Sistemas  
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Rafael_Borges-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://linkedin.com/in/rafael-borges318)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Rafael_Borges-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://linkedin.com/in/rafael-borges-lima)
 [![GitHub](https://img.shields.io/badge/GitHub-Rafael--Borges318-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Rafael-Borges318)
