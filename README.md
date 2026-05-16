@@ -24,13 +24,11 @@ O administrador acessa um painel protegido por JWT para visualizar, filtrar e ge
 
 ---
 
-## Screenshot
+## Screenshots
 
-> _Adicione aqui um screenshot da interface (sugestão: use [Lightshot](https://app.prntscr.com) ou a própria aba do navegador)._
-
-```
-[ screenshot do fluxo de agendamento ]       [ screenshot do painel admin ]
-```
+| Fluxo de agendamento | Painel administrativo |
+|:---:|:---:|
+| ![Agendamento](docs/img/agendamento.png) | ![Painel Admin](docs/img/painelAdmin.png) |
 
 ---
 
