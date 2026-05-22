@@ -47,6 +47,7 @@ O administrador acessa um painel protegido por JWT para visualizar, filtrar e ge
 - Filtros por data, serviço e status
 - Modal de detalhes do cliente com histórico
 - Proteção de rota no frontend e validação de token no backend
+- Geração automática de PDF da ficha de anamnese com termo de consentimento
 
 ### Backend
 - Validação de conflitos de horário server-side

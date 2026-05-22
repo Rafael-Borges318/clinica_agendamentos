@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { authHeaders, removeToken } from "../lib/auth";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -68,6 +69,202 @@ function clienteTipoClass(tipo) {
   if (tipo === "nova") return "badge badge-nova";
   if (tipo === "recorrente") return "badge badge-recorrente";
   return "badge";
+}
+
+const labelMap = {
+  idade: "Idade",
+  profissao: "Profissão / onde trabalha",
+  como_nos_conheceu: "Como nos conheceu",
+  doencas_diagnosticadas: "Doenças diagnosticadas",
+  outras_condicoes_saude: "Outras condições de saúde",
+  gestante_amamentando: "Gestante ou amamentando",
+  usa_medicacao_continua: "Usa medicação contínua",
+  qual_medicacao_continua: "Qual medicação",
+  reacao_alergica_produto: "Reação alérgica a produto",
+  descricao_alergia: "Descrição da alergia",
+  tipo_pele: "Tipo de pele",
+  doencas_pele: "Doenças de pele",
+  sensibilidade_problema_ocular: "Sensibilidade ou problema ocular",
+  descricao_problema_ocular: "Descrição do problema ocular",
+  exposicao_solar_frequente: "Exposição solar frequente",
+  usa_protetor_solar: "Usa protetor solar",
+  realizou_procedimento_antes: "Realizou este procedimento antes",
+  onde_quando_procedimento_anterior: "Onde e quando (procedimento anterior)",
+  procedimento_ultimos_30_dias: "Procedimento nos últimos 30 dias",
+  qual_procedimento_recente: "Qual procedimento recente",
+  reacao_adversa_estetica: "Reação adversa a procedimento estético",
+  descricao_reacao_adversa: "Descrição da reação adversa",
+  uso_cigarro_alcool: "Uso de cigarro ou álcool",
+  expectativa_procedimento: "Expectativa do procedimento",
+  observacoes_adicionais: "Observações adicionais",
+  consentimento: "Consentimento assinado",
+};
+
+function formatarValorAnamnese(valor) {
+  if (valor === true) return "Sim";
+  if (valor === false) return "Não";
+  if (Array.isArray(valor)) return valor.length ? valor.join(", ") : "Nenhuma";
+  return String(valor || "-");
+}
+
+function gerarPDFAdmin(respostas, telefone, dataHora) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const ML = 15;
+  const MR = 15;
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const TW = W - ML - MR;
+  const BOTTOM = 22;
+  let y = 20;
+
+  function novaPagina() {
+    doc.addPage();
+    y = 20;
+  }
+
+  function checarPagina(espaco = 12) {
+    if (y + espaco > H - BOTTOM) novaPagina();
+  }
+
+  function titulo(texto) {
+    checarPagina(16);
+    doc.setFillColor(243, 244, 246);
+    doc.rect(ML - 2, y - 5, TW + 4, 8, "F");
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(55, 65, 81);
+    doc.text(texto, ML, y);
+    y += 7;
+  }
+
+  function campo(label, valor) {
+    const val = valor || "—";
+    checarPagina(10);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(107, 114, 128);
+    doc.text(label, ML, y);
+    y += 4.5;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(31, 41, 55);
+    const linhas = doc.splitTextToSize(val, TW - 4);
+    checarPagina(linhas.length * 4.5 + 3);
+    doc.text(linhas, ML + 2, y);
+    y += linhas.length * 4.5 + 3;
+  }
+
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(31, 41, 55);
+  doc.text("Ficha de Anamnese — JA Clínica", ML, y);
+  y += 7;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(107, 114, 128);
+  doc.text(`Preenchida em: ${dataHora}`, ML, y);
+  y += 5;
+  doc.text(`Telefone: ${telefone}`, ML, y);
+  y += 7;
+  doc.setDrawColor(209, 213, 219);
+  doc.line(ML, y, W - MR, y);
+  y += 8;
+
+  titulo("1. Dados Pessoais");
+  campo("Idade:", respostas.idade ? `${respostas.idade} anos` : "");
+  campo("Profissão / onde trabalha:", respostas.profissao);
+  campo("Como nos conheceu:", respostas.como_nos_conheceu);
+  y += 2;
+
+  titulo("2. Saúde Geral");
+  const doencas = respostas.doencas_diagnosticadas?.length
+    ? respostas.doencas_diagnosticadas.join(", ")
+    : "Nenhuma informada";
+  campo("Doenças diagnosticadas:", doencas);
+  if (respostas.outras_condicoes_saude) {
+    campo("Outras condições de saúde:", respostas.outras_condicoes_saude);
+  }
+  campo("Gestante ou amamentando:", respostas.gestante_amamentando);
+  campo("Usa medicação contínua:", respostas.usa_medicacao_continua);
+  if (respostas.usa_medicacao_continua === "sim") {
+    campo("Qual medicação:", respostas.qual_medicacao_continua || "Não especificado");
+  }
+  campo("Reação alérgica a produto:", respostas.reacao_alergica_produto);
+  if (respostas.reacao_alergica_produto === "sim") {
+    campo("Descrição da alergia:", respostas.descricao_alergia || "Não especificado");
+  }
+  y += 2;
+
+  titulo("3. Condições da Pele e Região");
+  campo("Tipo de pele:", respostas.tipo_pele);
+  const dpele = respostas.doencas_pele?.length
+    ? respostas.doencas_pele.join(", ")
+    : "Nenhuma informada";
+  campo("Doenças de pele diagnosticadas:", dpele);
+  campo("Sensibilidade ou problema ocular:", respostas.sensibilidade_problema_ocular);
+  if (respostas.sensibilidade_problema_ocular === "sim") {
+    campo("Descrição:", respostas.descricao_problema_ocular || "Não especificado");
+  }
+  campo("Exposição solar frequente:", respostas.exposicao_solar_frequente);
+  campo("Usa protetor solar:", respostas.usa_protetor_solar);
+  y += 2;
+
+  titulo("4. Histórico Estético");
+  campo("Realizou este procedimento antes:", respostas.realizou_procedimento_antes);
+  if (respostas.realizou_procedimento_antes === "sim") {
+    campo("Onde e quando:", respostas.onde_quando_procedimento_anterior || "Não especificado");
+  }
+  campo("Procedimento nos últimos 30 dias na região:", respostas.procedimento_ultimos_30_dias);
+  if (respostas.procedimento_ultimos_30_dias === "sim") {
+    campo("Qual procedimento:", respostas.qual_procedimento_recente || "Não especificado");
+  }
+  campo("Reação adversa a procedimento estético:", respostas.reacao_adversa_estetica);
+  if (respostas.reacao_adversa_estetica === "sim") {
+    campo("Descrição da reação:", respostas.descricao_reacao_adversa || "Não especificado");
+  }
+  campo("Uso de cigarro ou álcool:", respostas.uso_cigarro_alcool);
+  y += 2;
+
+  titulo("5. Expectativas");
+  campo("O que espera do procedimento:", respostas.expectativa_procedimento || "Não informado");
+  if (respostas.observacoes_adicionais) {
+    campo("Observações adicionais:", respostas.observacoes_adicionais);
+  }
+  y += 2;
+
+  checarPagina(55);
+  doc.setDrawColor(209, 213, 219);
+  doc.line(ML, y, W - MR, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(55, 65, 81);
+  doc.text("Termo de Consentimento", ML, y);
+  y += 6;
+
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(75, 85, 99);
+  const termoTexto =
+    `Declaro que as informações fornecidas acima são verdadeiras e completas. ` +
+    `Autorizo a realização do procedimento e estou ciente de que informações incorretas ` +
+    `podem comprometer o resultado e minha segurança. Este registro foi realizado ` +
+    `digitalmente em ${dataHora} e tem validade legal conforme o Marco Civil da ` +
+    `Internet (Lei 12.965/2014).`;
+  const termoLinhas = doc.splitTextToSize(termoTexto, TW);
+  checarPagina(termoLinhas.length * 4 + 18);
+  doc.text(termoLinhas, ML, y);
+  y += termoLinhas.length * 4 + 12;
+
+  doc.setFontSize(9.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(31, 41, 55);
+  doc.text("Assinatura da cliente: ___________________________", ML, y);
+
+  const dataArquivo = new Date()
+    .toLocaleDateString("pt-BR")
+    .replace(/\//g, "-");
+  doc.save(`anamnese_${telefone}_${dataArquivo}.pdf`);
 }
 
 function DetalheClienteModal({ agendamento, onClose }) {
@@ -142,14 +339,29 @@ function DetalheClienteModal({ agendamento, onClose }) {
             </p>
 
             {anamnese.respostas ? (
-              <div className="anamnese-respostas">
-                {Object.entries(anamnese.respostas).map(([chave, valor]) => (
-                  <div key={chave} className="anamnese-item">
-                    <strong>{chave}:</strong>{" "}
-                    <span>{String(valor || "-")}</span>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="anamnese-respostas">
+                  {Object.entries(anamnese.respostas).map(([chave, valor]) => (
+                    <div key={chave} className="anamnese-item">
+                      <strong>{labelMap[chave] || chave}:</strong>{" "}
+                      <span>{formatarValorAnamnese(valor)}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="btn-outline"
+                  style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}
+                  onClick={() =>
+                    gerarPDFAdmin(
+                      anamnese.respostas,
+                      agendamento.telefone,
+                      formatarDataHora(anamnese.created_at),
+                    )
+                  }
+                >
+                  Baixar PDF da anamnese
+                </button>
+              </>
             ) : (
               <p className="admin-muted">Sem respostas carregadas.</p>
             )}

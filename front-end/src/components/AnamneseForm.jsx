@@ -1,96 +1,302 @@
 import { useState } from "react";
+import jsPDF from "jspdf";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const DOENCAS_GERAIS = [
-  { id: "diabetes", label: "Diabetes" },
-  { id: "hipertensao", label: "Hipertensão" },
-  { id: "epilepsia", label: "Epilepsia" },
-  { id: "doencas_autoimunes", label: "Doenças autoimunes" },
-  { id: "disturbios_hormonais", label: "Distúrbios hormonais" },
-  { id: "problemas_circulatorios", label: "Problemas circulatórios" },
-  { id: "trombose", label: "Trombose" },
+  { id: "Diabetes", label: "Diabetes" },
+  { id: "Hipertensão", label: "Hipertensão" },
+  { id: "Epilepsia", label: "Epilepsia" },
+  { id: "Doenças autoimunes", label: "Doenças autoimunes" },
+  { id: "Distúrbios hormonais", label: "Distúrbios hormonais" },
+  { id: "Problemas circulatórios", label: "Problemas circulatórios" },
+  { id: "Trombose", label: "Trombose" },
+  { id: "Nenhuma", label: "Nenhuma" },
 ];
 
 const DOENCAS_PELE = [
-  { id: "psoriase", label: "Psoríase" },
-  { id: "dermatite", label: "Dermatite" },
-  { id: "rosacea", label: "Rosácea" },
-  { id: "acne", label: "Acne" },
+  { id: "Psoríase", label: "Psoríase" },
+  { id: "Dermatite", label: "Dermatite" },
+  { id: "Rosácea", label: "Rosácea" },
+  { id: "Acne severa", label: "Acne severa" },
+  { id: "Nenhuma", label: "Nenhuma" },
 ];
 
-const secaoStyle = {
-  marginBottom: "2rem",
-  padding: "1.25rem 1.5rem",
-  border: "1px solid #e5e7eb",
-  borderRadius: "10px",
-  background: "#fafafa",
+// ── estilos inline (sem tocar no CSS externo) ──────────────────────────────
+const S = {
+  secao: {
+    marginBottom: "1.75rem",
+    padding: "1.25rem 1.5rem",
+    border: "1px solid #e5e7eb",
+    borderRadius: "10px",
+    background: "#fafafa",
+  },
+  titulo: {
+    fontSize: "0.95rem",
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: "1.25rem",
+    paddingBottom: "0.5rem",
+    borderBottom: "2px solid #e5e7eb",
+    margin: "0 0 1.25rem 0",
+  },
+  checkboxes: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.45rem",
+    marginTop: "0.5rem",
+  },
+  checkItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    fontSize: "0.9rem",
+    cursor: "pointer",
+    color: "#374151",
+  },
+  termoBloco: {
+    background: "#fef9ec",
+    border: "1px solid #f59e0b",
+    borderRadius: "8px",
+    padding: "1rem 1.25rem",
+    marginBottom: "1rem",
+    fontSize: "0.85rem",
+    lineHeight: "1.65",
+    color: "#374151",
+  },
+  consentLabel: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "0.5rem",
+    fontSize: "0.9rem",
+    fontWeight: "500",
+    cursor: "pointer",
+    color: "#374151",
+    lineHeight: "1.5",
+  },
 };
 
-const secaoTituloStyle = {
-  fontSize: "0.95rem",
-  fontWeight: "600",
-  color: "#374151",
-  marginBottom: "1.25rem",
-  paddingBottom: "0.5rem",
-  borderBottom: "2px solid #e5e7eb",
-};
+// ── helpers ────────────────────────────────────────────────────────────────
+function formatDataHora(date) {
+  return date.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-const checkboxesStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "0.45rem",
-  marginTop: "0.5rem",
-};
+function gerarPDF(respostas, telefone, dataHora) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const ML = 15;
+  const MR = 15;
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const TW = W - ML - MR;
+  const BOTTOM = 22;
+  let y = 20;
 
-const checkboxItemStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0.5rem",
-  fontSize: "0.9rem",
-  cursor: "pointer",
-  color: "#374151",
-};
+  function novaPagina() {
+    doc.addPage();
+    y = 20;
+  }
 
-const consentimentoStyle = {
-  ...checkboxItemStyle,
-  alignItems: "flex-start",
-  fontWeight: "500",
-  lineHeight: "1.5",
-};
+  function checarPagina(espaco = 12) {
+    if (y + espaco > H - BOTTOM) novaPagina();
+  }
 
+  function titulo(texto) {
+    checarPagina(16);
+    doc.setFillColor(243, 244, 246);
+    doc.rect(ML - 2, y - 5, TW + 4, 8, "F");
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(55, 65, 81);
+    doc.text(texto, ML, y);
+    y += 7;
+  }
+
+  function campo(label, valor) {
+    const val = valor || "—";
+    checarPagina(10);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(107, 114, 128);
+    doc.text(label, ML, y);
+    y += 4.5;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(31, 41, 55);
+    const linhas = doc.splitTextToSize(val, TW - 4);
+    checarPagina(linhas.length * 4.5 + 3);
+    doc.text(linhas, ML + 2, y);
+    y += linhas.length * 4.5 + 3;
+  }
+
+  // ─── Cabeçalho ─────────────────────────────────────────────────────────
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(31, 41, 55);
+  doc.text("Ficha de Anamnese — JA Clínica", ML, y);
+  y += 7;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(107, 114, 128);
+  doc.text(`Preenchida em: ${dataHora}`, ML, y);
+  y += 5;
+  doc.text(`Telefone: ${telefone}`, ML, y);
+  y += 7;
+  doc.setDrawColor(209, 213, 219);
+  doc.line(ML, y, W - MR, y);
+  y += 8;
+
+  // ─── Seção 1 ────────────────────────────────────────────────────────────
+  titulo("1. Dados Pessoais");
+  campo("Idade:", respostas.idade ? `${respostas.idade} anos` : "");
+  campo("Profissão / onde trabalha:", respostas.profissao);
+  campo("Como nos conheceu:", respostas.como_nos_conheceu);
+  y += 2;
+
+  // ─── Seção 2 ────────────────────────────────────────────────────────────
+  titulo("2. Saúde Geral");
+  const doencas = respostas.doencas_diagnosticadas?.length
+    ? respostas.doencas_diagnosticadas.join(", ")
+    : "Nenhuma informada";
+  campo("Doenças diagnosticadas:", doencas);
+  if (respostas.outras_condicoes_saude) {
+    campo("Outras condições de saúde:", respostas.outras_condicoes_saude);
+  }
+  campo("Gestante ou amamentando:", respostas.gestante_amamentando);
+  campo("Usa medicação contínua:", respostas.usa_medicacao_continua);
+  if (respostas.usa_medicacao_continua === "sim") {
+    campo("Qual medicação:", respostas.qual_medicacao_continua || "Não especificado");
+  }
+  campo("Reação alérgica a produto:", respostas.reacao_alergica_produto);
+  if (respostas.reacao_alergica_produto === "sim") {
+    campo("Descrição da alergia:", respostas.descricao_alergia || "Não especificado");
+  }
+  y += 2;
+
+  // ─── Seção 3 ────────────────────────────────────────────────────────────
+  titulo("3. Condições da Pele e Região");
+  campo("Tipo de pele:", respostas.tipo_pele);
+  const dpele = respostas.doencas_pele?.length
+    ? respostas.doencas_pele.join(", ")
+    : "Nenhuma informada";
+  campo("Doenças de pele diagnosticadas:", dpele);
+  campo("Sensibilidade ou problema ocular:", respostas.sensibilidade_problema_ocular);
+  if (respostas.sensibilidade_problema_ocular === "sim") {
+    campo("Descrição:", respostas.descricao_problema_ocular || "Não especificado");
+  }
+  campo("Exposição solar frequente:", respostas.exposicao_solar_frequente);
+  campo("Usa protetor solar:", respostas.usa_protetor_solar);
+  y += 2;
+
+  // ─── Seção 4 ────────────────────────────────────────────────────────────
+  titulo("4. Histórico Estético");
+  campo("Realizou este procedimento antes:", respostas.realizou_procedimento_antes);
+  if (respostas.realizou_procedimento_antes === "sim") {
+    campo("Onde e quando:", respostas.onde_quando_procedimento_anterior || "Não especificado");
+  }
+  campo("Procedimento nos últimos 30 dias na região:", respostas.procedimento_ultimos_30_dias);
+  if (respostas.procedimento_ultimos_30_dias === "sim") {
+    campo("Qual procedimento:", respostas.qual_procedimento_recente || "Não especificado");
+  }
+  campo("Reação adversa a procedimento estético:", respostas.reacao_adversa_estetica);
+  if (respostas.reacao_adversa_estetica === "sim") {
+    campo("Descrição da reação:", respostas.descricao_reacao_adversa || "Não especificado");
+  }
+  campo("Uso de cigarro ou álcool:", respostas.uso_cigarro_alcool);
+  y += 2;
+
+  // ─── Seção 5 ────────────────────────────────────────────────────────────
+  titulo("5. Expectativas");
+  campo(
+    "O que espera do procedimento:",
+    respostas.expectativa_procedimento || "Não informado",
+  );
+  if (respostas.observacoes_adicionais) {
+    campo("Observações adicionais:", respostas.observacoes_adicionais);
+  }
+  y += 2;
+
+  // ─── Termo de consentimento ─────────────────────────────────────────────
+  checarPagina(55);
+  doc.setDrawColor(209, 213, 219);
+  doc.line(ML, y, W - MR, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(55, 65, 81);
+  doc.text("Termo de Consentimento", ML, y);
+  y += 6;
+
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(75, 85, 99);
+  const termoTexto =
+    `Declaro que as informações fornecidas acima são verdadeiras e completas. ` +
+    `Autorizo a realização do procedimento e estou ciente de que informações incorretas ` +
+    `podem comprometer o resultado e minha segurança. Este registro foi realizado ` +
+    `digitalmente em ${dataHora} e tem validade legal conforme o Marco Civil da ` +
+    `Internet (Lei 12.965/2014).`;
+  const termoLinhas = doc.splitTextToSize(termoTexto, TW);
+  checarPagina(termoLinhas.length * 4 + 18);
+  doc.text(termoLinhas, ML, y);
+  y += termoLinhas.length * 4 + 12;
+
+  doc.setFontSize(9.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(31, 41, 55);
+  doc.text("Assinatura da cliente: ___________________________", ML, y);
+
+  const dataArquivo = new Date()
+    .toLocaleDateString("pt-BR")
+    .replace(/\//g, "-");
+  doc.save(`anamnese_${telefone}_${dataArquivo}.pdf`);
+}
+
+// ── Componente ─────────────────────────────────────────────────────────────
 export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // Captura o momento em que o cliente lê o termo de consentimento
+  const [dataHoraConsentimento] = useState(() => formatDataHora(new Date()));
+
   const [respostas, setRespostas] = useState({
-    // Saúde geral
-    doencas_preexistentes: [],
-    outras_condicoes: "",
-    // Medicamentos e alergias
-    usa_medicacao: "",
-    qual_medicacao: "",
-    tem_alergia: "",
-    qual_alergia: "",
-    // Condições específicas
-    gravida_ou_amamentando: "",
-    sensibilidade_pele: "",
-    onde_sensibilidade: "",
+    // Seção 1
+    idade: "",
+    profissao: "",
+    como_nos_conheceu: "",
+    // Seção 2
+    doencas_diagnosticadas: [],
+    outras_condicoes_saude: "",
+    gestante_amamentando: "",
+    usa_medicacao_continua: "",
+    qual_medicacao_continua: "",
+    reacao_alergica_produto: "",
+    descricao_alergia: "",
+    // Seção 3
+    tipo_pele: "",
     doencas_pele: [],
-    doenca_pele_outro: "",
-    // Hábitos
-    usa_protetor_solar: "",
-    fuma: "",
-    consome_alcool: "",
+    sensibilidade_problema_ocular: "",
+    descricao_problema_ocular: "",
     exposicao_solar_frequente: "",
-    // Histórico estético
-    procedimento_recente_regiao: "",
+    usa_protetor_solar: "",
+    // Seção 4
+    realizou_procedimento_antes: "",
+    onde_quando_procedimento_anterior: "",
+    procedimento_ultimos_30_dias: "",
     qual_procedimento_recente: "",
-    reacao_adversa_procedimento: "",
-    qual_reacao_adversa: "",
-    // Expectativas
-    expectativas: "",
-    // Consentimento
+    reacao_adversa_estetica: "",
+    descricao_reacao_adversa: "",
+    uso_cigarro_alcool: "",
+    // Seção 5
+    expectativa_procedimento: "",
+    observacoes_adicionais: "",
+    // Seção 6
     consentimento: false,
   });
 
@@ -102,26 +308,21 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
     }));
   }
 
-  function handleDoencaGeralCheck(id) {
+  function handleCheckMultiple(field, id) {
     setRespostas((prev) => {
-      const arr = prev.doencas_preexistentes;
+      const arr = prev[field];
+      if (id === "Nenhuma") {
+        return {
+          ...prev,
+          [field]: arr.includes("Nenhuma") ? [] : ["Nenhuma"],
+        };
+      }
+      const semNenhuma = arr.filter((v) => v !== "Nenhuma");
       return {
         ...prev,
-        doencas_preexistentes: arr.includes(id)
-          ? arr.filter((v) => v !== id)
-          : [...arr, id],
-      };
-    });
-  }
-
-  function handleDoencaPeleCheck(id) {
-    setRespostas((prev) => {
-      const arr = prev.doencas_pele;
-      return {
-        ...prev,
-        doencas_pele: arr.includes(id)
-          ? arr.filter((v) => v !== id)
-          : [...arr, id],
+        [field]: semNenhuma.includes(id)
+          ? semNenhuma.filter((v) => v !== id)
+          : [...semNenhuma, id],
       };
     });
   }
@@ -151,7 +352,7 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
         return;
       }
 
-      setMsg("Ficha enviada com sucesso.");
+      gerarPDF(respostas, telefone, dataHoraConsentimento);
       onSuccess();
     } catch {
       setMsg("Não foi possível enviar a anamnese.");
@@ -159,6 +360,13 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
       setLoading(false);
     }
   }
+
+  const termoCompleto =
+    `Declaro que as informações fornecidas acima são verdadeiras e completas. ` +
+    `Autorizo a realização do procedimento e estou ciente de que informações incorretas ` +
+    `podem comprometer o resultado e minha segurança. Este registro foi realizado ` +
+    `digitalmente em ${dataHoraConsentimento} e tem validade legal conforme o Marco ` +
+    `Civil da Internet (Lei 12.965/2014).`;
 
   return (
     <form onSubmit={handleSubmit} className="anamnese-form">
@@ -169,24 +377,74 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
         procedimento.
       </p>
 
-      {/* ── 1. SAÚDE GERAL ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>1. Saúde Geral</h3>
+      {/* ══ 1. DADOS PESSOAIS ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>1. Dados Pessoais</h3>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Idade *</label>
+          <input
+            type="number"
+            name="idade"
+            value={respostas.idade}
+            onChange={handleChange}
+            min="1"
+            max="120"
+            placeholder="Ex: 28"
+            className="anamnese-input"
+            required
+          />
+        </div>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Profissão / onde trabalha *</label>
+          <input
+            type="text"
+            name="profissao"
+            value={respostas.profissao}
+            onChange={handleChange}
+            placeholder="Ex: Professora, Enfermeira, Estudante..."
+            className="anamnese-input"
+            required
+          />
+        </div>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Como nos conheceu?</label>
+          <select
+            name="como_nos_conheceu"
+            value={respostas.como_nos_conheceu}
+            onChange={handleChange}
+            className="anamnese-input"
+          >
+            <option value="">Selecione</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Indicação">Indicação</option>
+            <option value="Google">Google</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+
+      {/* ══ 2. SAÚDE GERAL ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>2. Saúde Geral</h3>
 
         <div className="anamnese-group">
           <label className="anamnese-label">
-            Possui alguma das condições abaixo?
+            Possui alguma doença diagnosticada?
           </label>
-          <div style={checkboxesStyle}>
+          <div className="anamnese-check-group">
             {DOENCAS_GERAIS.map(({ id, label }) => (
-              <label key={id} style={checkboxItemStyle}>
+              <div key={id} className="anamnese-check-item">
                 <input
                   type="checkbox"
-                  checked={respostas.doencas_preexistentes.includes(id)}
-                  onChange={() => handleDoencaGeralCheck(id)}
+                  id={`doenca-${id}`}
+                  checked={respostas.doencas_diagnosticadas.includes(id)}
+                  onChange={() => handleCheckMultiple("doencas_diagnosticadas", id)}
                 />
-                {label}
-              </label>
+                <label htmlFor={`doenca-${id}`}>{label}</label>
+              </div>
             ))}
           </div>
         </div>
@@ -195,24 +453,35 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
           <label className="anamnese-label">Outras condições de saúde</label>
           <input
             type="text"
-            name="outras_condicoes"
-            value={respostas.outras_condicoes}
+            name="outras_condicoes_saude"
+            value={respostas.outras_condicoes_saude}
             onChange={handleChange}
-            placeholder="Descreva outras condições, se houver"
+            placeholder="Descreva se necessário"
             className="anamnese-input"
           />
         </div>
-      </div>
-
-      {/* ── 2. MEDICAMENTOS E ALERGIAS ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>2. Medicamentos e Alergias</h3>
 
         <div className="anamnese-group">
-          <label className="anamnese-label">Usa alguma medicação contínua?</label>
+          <label className="anamnese-label">Está gestante ou amamentando?</label>
           <select
-            name="usa_medicacao"
-            value={respostas.usa_medicacao}
+            name="gestante_amamentando"
+            value={respostas.gestante_amamentando}
+            onChange={handleChange}
+            className="anamnese-input"
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="Não">Não</option>
+            <option value="Gestante">Gestante</option>
+            <option value="Amamentando">Amamentando</option>
+          </select>
+        </div>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Faz uso de medicação contínua?</label>
+          <select
+            name="usa_medicacao_continua"
+            value={respostas.usa_medicacao_continua}
             onChange={handleChange}
             className="anamnese-input"
             required
@@ -223,13 +492,13 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
           </select>
         </div>
 
-        {respostas.usa_medicacao === "sim" && (
+        {respostas.usa_medicacao_continua === "sim" && (
           <div className="anamnese-group">
             <label className="anamnese-label">Qual medicação?</label>
             <input
               type="text"
-              name="qual_medicacao"
-              value={respostas.qual_medicacao}
+              name="qual_medicacao_continua"
+              value={respostas.qual_medicacao_continua}
               onChange={handleChange}
               placeholder="Ex: antibióticos, isotretinoína, anticoagulantes..."
               className="anamnese-input"
@@ -238,10 +507,12 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
         )}
 
         <div className="anamnese-group">
-          <label className="anamnese-label">Tem alguma alergia?</label>
+          <label className="anamnese-label">
+            Já teve reação alérgica a algum produto?
+          </label>
           <select
-            name="tem_alergia"
-            value={respostas.tem_alergia}
+            name="reacao_alergica_produto"
+            value={respostas.reacao_alergica_produto}
             onChange={handleChange}
             className="anamnese-input"
             required
@@ -252,103 +523,109 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
           </select>
         </div>
 
-        {respostas.tem_alergia === "sim" && (
+        {respostas.reacao_alergica_produto === "sim" && (
           <div className="anamnese-group">
-            <label className="anamnese-label">A que tem alergia?</label>
+            <label className="anamnese-label">Descreva a alergia</label>
             <input
               type="text"
-              name="qual_alergia"
-              value={respostas.qual_alergia}
+              name="descricao_alergia"
+              value={respostas.descricao_alergia}
               onChange={handleChange}
-              placeholder="Ex: látex, cosméticos, fragrâncias, produtos químicos..."
+              placeholder="Ex: látex, cosméticos, fragrâncias..."
               className="anamnese-input"
             />
           </div>
         )}
       </div>
 
-      {/* ── 3. CONDIÇÕES ESPECÍFICAS ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>3. Condições Específicas</h3>
-
-        <div className="anamnese-group">
-          <label className="anamnese-label">Está grávida ou amamentando?</label>
-          <select
-            name="gravida_ou_amamentando"
-            value={respostas.gravida_ou_amamentando}
-            onChange={handleChange}
-            className="anamnese-input"
-            required
-          >
-            <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
-        </div>
-
-        <div className="anamnese-group">
-          <label className="anamnese-label">Tem sensibilidade na pele?</label>
-          <select
-            name="sensibilidade_pele"
-            value={respostas.sensibilidade_pele}
-            onChange={handleChange}
-            className="anamnese-input"
-            required
-          >
-            <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
-        </div>
-
-        {respostas.sensibilidade_pele === "sim" && (
-          <div className="anamnese-group">
-            <label className="anamnese-label">Em qual região?</label>
-            <input
-              type="text"
-              name="onde_sensibilidade"
-              value={respostas.onde_sensibilidade}
-              onChange={handleChange}
-              placeholder="Ex: rosto, olhos, pescoço..."
-              className="anamnese-input"
-            />
-          </div>
-        )}
+      {/* ══ 3. CONDIÇÕES DA PELE E REGIÃO ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>3. Condições da Pele e Região</h3>
 
         <div className="anamnese-group">
           <label className="anamnese-label">
-            Tem alguma doença de pele diagnosticada?
+            Como você classificaria sua pele?
           </label>
-          <div style={checkboxesStyle}>
+          <select
+            name="tipo_pele"
+            value={respostas.tipo_pele}
+            onChange={handleChange}
+            className="anamnese-input"
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="Normal">Normal</option>
+            <option value="Oleosa">Oleosa</option>
+            <option value="Seca">Seca</option>
+            <option value="Mista">Mista</option>
+            <option value="Sensível">Sensível</option>
+          </select>
+        </div>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">
+            Possui alguma doença de pele diagnosticada?
+          </label>
+          <div className="anamnese-check-group">
             {DOENCAS_PELE.map(({ id, label }) => (
-              <label key={id} style={checkboxItemStyle}>
+              <div key={id} className="anamnese-check-item">
                 <input
                   type="checkbox"
+                  id={`pele-${id}`}
                   checked={respostas.doencas_pele.includes(id)}
-                  onChange={() => handleDoencaPeleCheck(id)}
+                  onChange={() => handleCheckMultiple("doencas_pele", id)}
                 />
-                {label}
-              </label>
+                <label htmlFor={`pele-${id}`}>{label}</label>
+              </div>
             ))}
           </div>
         </div>
 
         <div className="anamnese-group">
-          <label className="anamnese-label">Outra doença de pele</label>
-          <input
-            type="text"
-            name="doenca_pele_outro"
-            value={respostas.doenca_pele_outro}
+          <label className="anamnese-label">
+            Tem sensibilidade ou problema ocular?
+          </label>
+          <select
+            name="sensibilidade_problema_ocular"
+            value={respostas.sensibilidade_problema_ocular}
             onChange={handleChange}
-            placeholder="Se não listada acima, descreva aqui"
             className="anamnese-input"
-          />
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
         </div>
-      </div>
 
-      {/* ── 4. HÁBITOS ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>4. Hábitos</h3>
+        {respostas.sensibilidade_problema_ocular === "sim" && (
+          <div className="anamnese-group">
+            <label className="anamnese-label">Descreva o problema</label>
+            <input
+              type="text"
+              name="descricao_problema_ocular"
+              value={respostas.descricao_problema_ocular}
+              onChange={handleChange}
+              placeholder="Ex: olho seco, conjuntivite recorrente, dermatite ocular..."
+              className="anamnese-input"
+            />
+          </div>
+        )}
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Realiza exposição solar frequente?</label>
+          <select
+            name="exposicao_solar_frequente"
+            value={respostas.exposicao_solar_frequente}
+            onChange={handleChange}
+            className="anamnese-input"
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
 
         <div className="anamnese-group">
           <label className="anamnese-label">Usa protetor solar diariamente?</label>
@@ -360,70 +637,55 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
             required
           >
             <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
-        </div>
-
-        <div className="anamnese-group">
-          <label className="anamnese-label">Fuma?</label>
-          <select
-            name="fuma"
-            value={respostas.fuma}
-            onChange={handleChange}
-            className="anamnese-input"
-            required
-          >
-            <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
-        </div>
-
-        <div className="anamnese-group">
-          <label className="anamnese-label">Consome álcool?</label>
-          <select
-            name="consome_alcool"
-            value={respostas.consome_alcool}
-            onChange={handleChange}
-            className="anamnese-input"
-            required
-          >
-            <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="raramente">Raramente</option>
-            <option value="socialmente">Socialmente</option>
-            <option value="frequentemente">Frequentemente</option>
-          </select>
-        </div>
-
-        <div className="anamnese-group">
-          <label className="anamnese-label">Pratica exposição solar frequente?</label>
-          <select
-            name="exposicao_solar_frequente"
-            value={respostas.exposicao_solar_frequente}
-            onChange={handleChange}
-            className="anamnese-input"
-            required
-          >
-            <option value="">Selecione</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+            <option value="Às vezes">Às vezes</option>
           </select>
         </div>
       </div>
 
-      {/* ── 5. HISTÓRICO ESTÉTICO ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>5. Histórico Estético</h3>
+      {/* ══ 4. HISTÓRICO ESTÉTICO ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>4. Histórico Estético</h3>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">
+            Já realizou este tipo de procedimento antes?
+          </label>
+          <select
+            name="realizou_procedimento_antes"
+            value={respostas.realizou_procedimento_antes}
+            onChange={handleChange}
+            className="anamnese-input"
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+
+        {respostas.realizou_procedimento_antes === "sim" && (
+          <div className="anamnese-group">
+            <label className="anamnese-label">Onde e quando?</label>
+            <input
+              type="text"
+              name="onde_quando_procedimento_anterior"
+              value={respostas.onde_quando_procedimento_anterior}
+              onChange={handleChange}
+              placeholder="Ex: Studio X, há 6 meses..."
+              className="anamnese-input"
+            />
+          </div>
+        )}
 
         <div className="anamnese-group">
           <label className="anamnese-label">
             Fez algum procedimento estético nos últimos 30 dias na região?
           </label>
           <select
-            name="procedimento_recente_regiao"
-            value={respostas.procedimento_recente_regiao}
+            name="procedimento_ultimos_30_dias"
+            value={respostas.procedimento_ultimos_30_dias}
             onChange={handleChange}
             className="anamnese-input"
             required
@@ -434,7 +696,7 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
           </select>
         </div>
 
-        {respostas.procedimento_recente_regiao === "sim" && (
+        {respostas.procedimento_ultimos_30_dias === "sim" && (
           <div className="anamnese-group">
             <label className="anamnese-label">Qual procedimento?</label>
             <input
@@ -450,11 +712,11 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
 
         <div className="anamnese-group">
           <label className="anamnese-label">
-            Já teve reação adversa a algum procedimento estético?
+            Já teve alguma reação adversa a procedimento estético?
           </label>
           <select
-            name="reacao_adversa_procedimento"
-            value={respostas.reacao_adversa_procedimento}
+            name="reacao_adversa_estetica"
+            value={respostas.reacao_adversa_estetica}
             onChange={handleChange}
             className="anamnese-input"
             required
@@ -465,60 +727,96 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
           </select>
         </div>
 
-        {respostas.reacao_adversa_procedimento === "sim" && (
+        {respostas.reacao_adversa_estetica === "sim" && (
           <div className="anamnese-group">
-            <label className="anamnese-label">Qual reação?</label>
+            <label className="anamnese-label">Descreva o que ocorreu</label>
             <input
               type="text"
-              name="qual_reacao_adversa"
-              value={respostas.qual_reacao_adversa}
+              name="descricao_reacao_adversa"
+              value={respostas.descricao_reacao_adversa}
               onChange={handleChange}
-              placeholder="Descreva a reação e o procedimento que a causou..."
+              placeholder="Ex: alergia à cola de cílios, irritação após peeling..."
               className="anamnese-input"
             />
           </div>
         )}
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">
+            Faz uso de cigarro ou bebida alcoólica frequente?
+          </label>
+          <select
+            name="uso_cigarro_alcool"
+            value={respostas.uso_cigarro_alcool}
+            onChange={handleChange}
+            className="anamnese-input"
+            required
+          >
+            <option value="">Selecione</option>
+            <option value="Não">Não</option>
+            <option value="Cigarro">Cigarro</option>
+            <option value="Álcool">Álcool</option>
+            <option value="Ambos">Ambos</option>
+          </select>
+        </div>
       </div>
 
-      {/* ── 6. EXPECTATIVAS ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>6. Expectativas</h3>
+      {/* ══ 5. EXPECTATIVAS ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>5. Expectativas</h3>
 
         <div className="anamnese-group">
           <label className="anamnese-label">
             O que você espera deste procedimento?
           </label>
           <textarea
-            name="expectativas"
-            value={respostas.expectativas}
+            name="expectativa_procedimento"
+            value={respostas.expectativa_procedimento}
             onChange={handleChange}
             placeholder="Conte o que espera alcançar com este procedimento..."
             className="anamnese-textarea"
-            rows="4"
+            rows="3"
+          />
+        </div>
+
+        <div className="anamnese-group">
+          <label className="anamnese-label">Observações adicionais</label>
+          <textarea
+            name="observacoes_adicionais"
+            value={respostas.observacoes_adicionais}
+            onChange={handleChange}
+            placeholder="Qualquer informação adicional que julgue importante..."
+            className="anamnese-textarea"
+            rows="3"
           />
         </div>
       </div>
 
-      {/* ── 7. TERMO DE CONSENTIMENTO ── */}
-      <div style={secaoStyle}>
-        <h3 style={secaoTituloStyle}>7. Termo de Consentimento</h3>
+      {/* ══ 6. TERMO DE CONSENTIMENTO ══ */}
+      <div style={S.secao}>
+        <h3 style={S.titulo}>6. Termo de Consentimento</h3>
 
-        <div className="anamnese-group">
-          <label style={consentimentoStyle}>
-            <input
-              type="checkbox"
-              name="consentimento"
-              checked={respostas.consentimento}
-              onChange={handleChange}
-              style={{ marginTop: "3px", flexShrink: 0 }}
-            />
-            Declaro que as informações acima são verdadeiras e autorizo a
-            realização do procedimento.
+        <div style={S.termoBloco}>{termoCompleto}</div>
+
+        <div className="anamnese-check-item">
+          <input
+            type="checkbox"
+            id="consentimento"
+            name="consentimento"
+            checked={respostas.consentimento}
+            onChange={handleChange}
+          />
+          <label htmlFor="consentimento">
+            Li e concordo com os termos acima.
           </label>
         </div>
       </div>
 
-      <button type="submit" className="btn-outline" disabled={loading}>
+      <button
+        type="submit"
+        className="btn-outline"
+        disabled={loading || !respostas.consentimento}
+      >
         {loading ? "Enviando..." : "Enviar ficha"}
       </button>
 
