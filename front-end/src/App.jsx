@@ -12,12 +12,12 @@ function App() {
         <Route path="/" element={<Home />} />
 
         <Route
-          path="/painel-ja-privado-administrativo"
+          path="/painel-ja-privado-administrativo/login-admin"
           element={<AdminLogin />}
         />
 
         <Route
-          path="/admin"
+          path="/painel-ja-privado-administrativo"
           element={
             <ProtectedRoute>
               <Admin />

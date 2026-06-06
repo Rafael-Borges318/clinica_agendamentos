@@ -267,6 +267,22 @@ function gerarPDFAdmin(respostas, telefone, dataHora) {
   doc.save(`anamnese_${telefone}_${dataArquivo}.pdf`);
 }
 
+function gerarLinkWhatsApp(telefone, nome, servico, inicio) {
+  const numero = "55" + telefone.replace(/\D/g, "");
+  const data = inicio
+    ? new Date(inicio).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "";
+  const hora = inicio
+    ? new Date(inicio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  const mensagem =
+    `Olá ${nome}! Tudo bem? 😊\n` +
+    `Passando para confirmar seu agendamento de *${servico}* ` +
+    `para o dia *${data}* às *${hora}*.\n` +
+    `Qualquer dúvida estamos à disposição!`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+}
+
 function DetalheClienteModal({ agendamento, onClose }) {
   if (!agendamento) return null;
 
@@ -284,9 +300,37 @@ function DetalheClienteModal({ agendamento, onClose }) {
             <p className="admin-modal-subtitle">{agendamento.telefone}</p>
           </div>
 
-          <button className="admin-close-btn" onClick={onClose}>
-            ✕
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <a
+              href={gerarLinkWhatsApp(
+                agendamento.telefone,
+                agendamento.nome,
+                servico.nome || "procedimento",
+                agendamento.inicio,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                background: "#25D366",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.45rem 0.9rem",
+                fontWeight: "600",
+                fontSize: "0.85rem",
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              💬 WhatsApp
+            </a>
+            <button className="admin-close-btn" onClick={onClose}>
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="admin-modal-grid">

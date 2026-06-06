@@ -256,7 +256,7 @@ Seu horário foi registrado e em breve entraremos em contato para confirmação.
         name="telefone"
         value={form.telefone}
         onChange={onChange}
-        placeholder="WhatsApp"
+        placeholder="WhatsApp (Ex: (51) 99999-9999)"
         required
       />
 

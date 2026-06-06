@@ -17,7 +17,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate("/admin", { replace: true });
+      navigate("/painel-ja-privado-administrativo", { replace: true });
     }
   }, [navigate]);
 
@@ -61,7 +61,7 @@ export default function AdminLogin() {
       }
 
       saveToken(data.token);
-      navigate("/admin", { replace: true });
+      navigate("/painel-ja-privado-administrativo", { replace: true });
     } catch (err) {
       setErro(err.message || "Falha no login");
     } finally {

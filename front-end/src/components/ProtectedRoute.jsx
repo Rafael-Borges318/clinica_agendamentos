@@ -3,7 +3,7 @@ import { isAuthenticated } from "../lib/auth";
 
 export default function ProtectedRoute({ children }) {
   if (!isAuthenticated()) {
-    return <Navigate to="/painel-ja-privado-administrativo" replace />;
+    return <Navigate to="/painel-ja-privado-administrativo/login-admin" replace />;
   }
 
   return children;

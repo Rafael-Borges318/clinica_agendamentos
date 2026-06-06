@@ -6,6 +6,7 @@ import {
   countVisitasClienteNoMes,
   countVisitasClienteTotal,
   findUltimaVisitaCliente,
+  findHistoricoCliente,
 } from "../repositories/agendamentoRepository.js";
 import { getServicoValidoById } from "./servicoService.js";
 import { sanitizeText } from "../utils/sanitize.js";
@@ -49,7 +50,7 @@ export async function listarAgendamentosAdmin(dia) {
         return ag;
       }
 
-      const [totalVisitas, visitasMes, ultimaVisita, anamnese] =
+      const [totalVisitas, visitasMes, ultimaVisita, anamnese, historico] =
         await Promise.all([
           countVisitasClienteTotal(ag.cliente_id),
           countVisitasClienteNoMes(ag.cliente_id, inicioMes, fimMes),
@@ -57,6 +58,7 @@ export async function listarAgendamentosAdmin(dia) {
           ag.servicos?.tipo_anamnese
             ? findAnamneseValida(ag.cliente_id, ag.servicos.tipo_anamnese)
             : null,
+          findHistoricoCliente(ag.cliente_id),
         ]);
 
       return {
@@ -74,7 +76,7 @@ export async function listarAgendamentosAdmin(dia) {
           respostas: anamnese?.respostas || null,
           created_at: anamnese?.created_at || null,
         },
-        historico: [],
+        historico: historico.filter((h) => h.id !== ag.id),
       };
     }),
   );
