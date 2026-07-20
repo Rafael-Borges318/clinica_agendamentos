@@ -122,6 +122,38 @@ export function CardStack<T extends CardStackItem>({
   );
   const [hovering, setHovering] = React.useState(false);
 
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = React.useState<number | null>(
+    null,
+  );
+
+  // keep card size within the available container width (avoids horizontal
+  // overflow on narrow / mobile screens, since cards are position:absolute
+  // and would otherwise bleed past the viewport)
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setContainerWidth(width);
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const effectiveCardWidth = containerWidth
+    ? Math.min(cardWidth, Math.round(containerWidth * 0.86))
+    : cardWidth;
+  const effectiveCardHeight = Math.round(
+    effectiveCardWidth * (cardHeight / cardWidth),
+  );
+  const effectiveMaxVisible =
+    containerWidth && containerWidth < 480
+      ? Math.min(maxVisible, 3)
+      : maxVisible;
+
   // keep active in bounds if items change
   React.useEffect(() => {
     setActive((a) => wrapIndex(a, len));
@@ -133,9 +165,12 @@ export function CardStack<T extends CardStackItem>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
-  const maxOffset = Math.max(0, Math.floor(maxVisible / 2));
+  const maxOffset = Math.max(0, Math.floor(effectiveMaxVisible / 2));
 
-  const cardSpacing = Math.max(10, Math.round(cardWidth * (1 - overlap)));
+  const cardSpacing = Math.max(
+    10,
+    Math.round(effectiveCardWidth * (1 - overlap)),
+  );
   const stepDeg = maxOffset > 0 ? spreadDeg / maxOffset : 0;
 
   const canGoPrev = loop || active > 0;
@@ -192,14 +227,17 @@ export function CardStack<T extends CardStackItem>({
 
   return (
     <div
+      ref={containerRef}
       className={cn("w-full", className)}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
       {/* Stage */}
       <div
-        className="relative w-full"
-        style={{ height: Math.max(380, cardHeight + 80) }}
+        className="relative w-full overflow-hidden"
+        style={{
+          height: Math.max(effectiveCardHeight + 80, containerWidth && containerWidth < 480 ? 260 : 380),
+        }}
         tabIndex={0}
         onKeyDown={onKeyDown}
       >
@@ -256,7 +294,10 @@ export function CardStack<T extends CardStackItem>({
                       if (reduceMotion) return;
                       const travel = info.offset.x;
                       const v = info.velocity.x;
-                      const threshold = Math.min(160, cardWidth * 0.22);
+                      const threshold = Math.min(
+                        160,
+                        effectiveCardWidth * 0.22,
+                      );
 
                       // swipe logic
                       if (travel > threshold || v > 650) prev();
@@ -269,15 +310,15 @@ export function CardStack<T extends CardStackItem>({
                 <motion.div
                   key={item.id}
                   className={cn(
-                    "absolute bottom-0 rounded-2xl border-4 border-black/10 dark:border-white/10 overflow-hidden shadow-xl",
+                    "absolute bottom-0 rounded-2xl overflow-hidden shadow-xl",
                     "will-change-transform select-none",
                     isActive
                       ? "cursor-grab active:cursor-grabbing"
                       : "cursor-pointer",
                   )}
                   style={{
-                    width: cardWidth,
-                    height: cardHeight,
+                    width: effectiveCardWidth,
+                    height: effectiveCardHeight,
                     zIndex,
                     transformStyle: "preserve-3d",
                   }}

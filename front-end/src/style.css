@@ -1009,16 +1009,43 @@ body::after {
     left: 0;
     flex-direction: column;
     background-color: #ffffff;
-    padding: 1rem 1.5rem 1.5rem;
+    padding: 0 1.5rem;
     gap: 1rem;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     max-height: 0;
     overflow: hidden;
-    transition: max-height var(--transition-fast);
+    transition:
+      max-height var(--transition-fast),
+      padding var(--transition-fast);
   }
 
   .nav-links.open {
     max-height: 260px;
+    padding: 1rem 1.5rem 1.5rem;
+  }
+
+  .admin-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-item-actions {
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-item-actions .btn-outline,
+  .admin-item-actions .admin-status-select {
+    flex: 1 1 auto;
+  }
+
+  .admin-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-modal-header {
+    flex-wrap: wrap;
   }
 }
 
@@ -1050,6 +1077,10 @@ body::after {
   .section {
     padding: 100px 0 60px;
   }
+
+  .agende-horarios-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .agende-form {
   display: grid;
@@ -1069,7 +1100,7 @@ body::after {
 
 .agende-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
