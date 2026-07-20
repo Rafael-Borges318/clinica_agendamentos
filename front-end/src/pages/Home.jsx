@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AgendeAquiForm from "../components/AgendeAquiForm.jsx";
-import Testimonials from "../components/Testimonials.jsx";
+import { CardStack } from "../components/ui/card-stack.tsx";
+import { testimonials } from "../data/testimonials.js";
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -103,210 +104,281 @@ export default function Home() {
         </p>
 
         <div className="container cards-grid">
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img src="img/Lash.png" alt="Lash Lifting" />
+              <div className="card-photo-overlay">
+                <h3>👁️ Lash Lifting</h3>
+                <p>Curvatura duradoura e natural por até 45 dias.</p>
+              </div>
             </div>
-            <h3>👁️ Lash Lifting</h3>
-            <p>Curvatura duradoura e natural por até 45 dias.</p>
           </article>
 
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img src="img/Pele.png" alt="Limpeza de Pele" />
+              <div className="card-photo-overlay">
+                <h3>💆‍♀️ Limpeza de Pele</h3>
+                <p>
+                  Limpeza profunda e revitalizante, garantindo uma pele
+                  uniforme e hidratada.
+                </p>
+              </div>
             </div>
-            <h3>💆‍♀️ Limpeza de Pele</h3>
-            <p>
-              Limpeza profunda e revitalizante, garantindo uma pele uniforme e
-              hidratada.
-            </p>
           </article>
 
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img src="img/Nano.png" alt="Nano Fios" />
+              <div className="card-photo-overlay">
+                <h3>🪄 Nano Fios</h3>
+                <p>
+                  Técnica avançada para correção de falhas nas sobrancelhas,
+                  durando de 6 meses a 1 ano e meio.
+                </p>
+              </div>
             </div>
-            <h3>🪄 Nano Fios</h3>
-            <p>
-              Técnica avançada para correção de falhas nas sobrancelhas, durando
-              de 6 meses a 1 ano e meio.
-            </p>
           </article>
 
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img src="img/brow.png" alt="Brow Lamination" />
+              <div className="card-photo-overlay">
+                <h3>🌿 Brow Lamination</h3>
+                <p>
+                  Alinhamento dos fios para sobrancelhas modernas e definidas.
+                </p>
+              </div>
             </div>
-            <h3>🌿 Brow Lamination</h3>
-            <p>Alinhamento dos fios para sobrancelhas modernas e definidas.</p>
           </article>
 
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img
                 src="img/Design.png"
                 alt="Design Personalizado de Sobrancelhas"
               />
+              <div className="card-photo-overlay">
+                <h3>✏️ Design Personalizado</h3>
+                <p>
+                  Garante sobrancelhas harmônicas e alinhadas, podendo optar
+                  por coloração ou henna.
+                </p>
+              </div>
             </div>
-            <h3>✏️ Design Personalizado</h3>
-            <p>
-              Garante sobrancelhas harmônicas e alinhadas, podendo optar por
-              coloração ou henna.
-            </p>
           </article>
 
-          <article className="card">
+          <article className="card card-procedure">
             <div className="card-photo">
               <img src="img/Clinica4.png" alt="Clínica JA" />
+              <div className="card-photo-overlay">
+                <h3>🏩 A Clínica</h3>
+                <p>
+                  Ambiente elegante, aconchegante e projetado para seu
+                  bem-estar.
+                </p>
+              </div>
             </div>
-            <h3>🏩 A Clínica</h3>
-            <p>
-              Ambiente elegante, aconchegante e projetado para seu bem-estar.
-            </p>
           </article>
         </div>
       </section>
 
-      <section className="section section-alt" id="cursos">
+      <section className="section" id="cursos">
         <h2 className="section-title">Cursos para Profissionais</h2>
         <p className="section-subtitle">
           Aprenda técnicas essenciais com quem domina a beleza.
         </p>
 
-        <div className="container cards-grid">
-          <article className="card">
-            <h3>Design Personalizado</h3>
-            <p>
-              Domine o design de sobrancelhas com técnica, precisão e
-              naturalidade.
-            </p>
+        <div className="container">
+          <div className="course-spotlight">
+            <div className="course-spotlight-photo">
+              <img
+                src="img/brow.png"
+                alt="Curso de Design Personalizado de Sobrancelhas"
+              />
+            </div>
 
-            <p className="card-detail">
-              • Como alisar as sobrancelhas <br />
-              • Princípios do visagismo <br />
-              • Princípios de biossegurança <br />
-              • Como montar a bancada de forma organizada <br />
-              • Como fazer marcação à mão livre <br />
-              • Como fazer depilação com pinça e cera <br />
-              • Como preparar coloração e henna e como aplicar <br />
-              <br />
-              • Curso com 2 dias (1º teórico, 2º prático), 2 módulos, Coffee
-              break incluso <br />
-              • Apostila online <br />
-              • Certificado <br />
-              • Kit básico <br />• Suporte pós-curso
-            </p>
+            <div className="course-spotlight-content">
+              <span className="course-badge">Design Personalizado</span>
+              <h3>Torne-se uma especialista</h3>
+              <p className="course-spotlight-subtitle">
+                Aprenda com quem vive a estética.
+              </p>
 
-            <p className="card-price">R$ 449,90</p>
+              <ul className="checklist">
+                <li>Turmas presenciais</li>
+                <li>Certificado</li>
+                <li>Apostila</li>
+                <li>Material incluso</li>
+                <li>Suporte pós-curso</li>
+              </ul>
 
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
+              <div className="course-spotlight-price">
+                <span>A partir de</span>
+                <strong>R$449</strong>
+              </div>
 
-          <article className="card">
-            <h3>Expert em Lash Lifting</h3>
-            <p>
-              Curso completo sobre a técnica mais natural para realçar olhares.
-            </p>
+              <a
+                href="https://wa.me/5551995262780"
+                className="btn-primary"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Quero me inscrever
+              </a>
+            </div>
+          </div>
 
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Química dos produtos
-              <br />
-              • Segurança no manuseio
-              <br />
-              • 3 modelos reais
-              <br />• Apostila online
-            </p>
+          <div className="cards-grid">
+            <article className="course-card">
+              <div className="course-card-photo">
+                <img src="img/Lash.png" alt="Expert em Lash Lifting" />
+              </div>
+              <div className="course-card-content">
+                <h4>Expert em Lash Lifting</h4>
+                <p>A técnica mais natural para realçar olhares.</p>
+                <span className="course-card-price">R$ 579,90</span>
+                <a
+                  href="https://wa.me/5551995262780"
+                  className="btn-outline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Saiba mais
+                </a>
+              </div>
+            </article>
 
-            <p className="card-price">R$ 579,90</p>
+            <article className="course-card">
+              <div className="course-card-photo">
+                <img src="img/Design.png" alt="Expert em Brow Lamination" />
+              </div>
+              <div className="course-card-content">
+                <h4>Expert em Brow Lamination</h4>
+                <p>A técnica mais versátil do design de sobrancelhas.</p>
+                <span className="course-card-price">R$ 579,90</span>
+                <a
+                  href="https://wa.me/5551995262780"
+                  className="btn-outline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Saiba mais
+                </a>
+              </div>
+            </article>
 
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
+            <article className="course-card">
+              <div className="course-card-photo">
+                <img src="img/Nano.png" alt="Expert em Naturalidade" />
+              </div>
+              <div className="course-card-content">
+                <h4>Expert em Naturalidade</h4>
+                <p>Lash Lifting + Brow Lamination em um só curso.</p>
+                <span className="course-card-price">R$ 989,90</span>
+                <a
+                  href="https://wa.me/5551995262780"
+                  className="btn-outline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Saiba mais
+                </a>
+              </div>
+            </article>
+          </div>
 
-          <article className="card">
-            <h3>Expert em Brow Lamination</h3>
-            <p>Domine a técnica mais versátil do design de sobrancelhas.</p>
+          <div className="credibility-strip credibility-strip--compact">
+            <div className="credibility-item">
+              <strong>300+</strong>
+              <p>Mais de 300 alunas formadas</p>
+            </div>
 
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Química dos produtos
-              <br />
-              • Segurança
-              <br />
-              • 3 modelos
-              <br />• Apostila online
-            </p>
+            <div className="credibility-item">
+              <strong>98%</strong>
+              <p>das alunas recomendam os cursos.</p>
+            </div>
 
-            <p className="card-price">R$ 579,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
-
-          <article className="card">
-            <h3>Expert em Naturalidade</h3>
-            <p>Lash Lifting + Brow Lamination em um só curso.</p>
-
-            <p className="card-detail">
-              • Estrutura da haste
-              <br />
-              • Análise facial
-              <br />
-              • 4 modelos reais
-              <br />• Apostila online
-            </p>
-
-            <p className="card-price">R$ 989,90</p>
-
-            <a
-              href="https://wa.me/5551995262780"
-              className="btn-outline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Saiba mais
-            </a>
-          </article>
+            <div className="credibility-item">
+              <strong>Aprendizado prático</strong>
+              <ul className="checklist checklist-compact">
+                <li>Modelos reais</li>
+                <li>Certificado</li>
+                <li>Apostila</li>
+                <li>Suporte</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="section" id="clientes">
+      <section className="section section-testimonials" id="clientes">
         <h2 className="section-title">Clientes Satisfeitas</h2>
         <p className="section-subtitle">
           Veja o que as clientes dizem sobre a JA.
         </p>
 
-        <Testimonials />
+        <div className="container">
+          <CardStack
+            items={testimonials}
+            autoAdvance
+            intervalMs={3500}
+            pauseOnHover
+            showDots
+            renderCard={(item) => (
+              <div className="relative h-full w-full">
+                <div className="absolute inset-0">
+                  <img
+                    src={item.imageSrc}
+                    alt={item.title}
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
+                  <div
+                    className="mb-2 text-sm tracking-wide"
+                    aria-label={`${item.rating} de 5 estrelas`}
+                  >
+                    {"★".repeat(item.rating)}
+                    {"☆".repeat(5 - item.rating)}
+                  </div>
+                  <p className="text-sm italic sm:text-base">
+                    "{item.description}"
+                  </p>
+                  <p className="mt-2 text-sm font-semibold not-italic">
+                    {item.title}
+                  </p>
+                </div>
+              </div>
+            )}
+          />
+        </div>
       </section>
 
-      <section className="section section-alt" id="localizacao">
-        <h2 className="section-title">Onde Estamos</h2>
-        <p className="section-subtitle">Venha conhecer nossa clínica.</p>
+      <section className="section section-contact-cta" id="localizacao">
+        <div className="container contact-cta-banner">
+          <div className="contact-cta-text">
+            <h2>Pronta para transformar sua autoestima?</h2>
+            <p>
+              Agende sua avaliação e descubra, com todo o cuidado da JA, o
+              procedimento ideal para realçar sua beleza natural.
+            </p>
+            <a href="#agende-form" className="btn-primary">
+              Agendar Avaliação
+            </a>
+          </div>
+
+          <div className="contact-cta-photo">
+            <img src="img/Clinica5.png" alt="Ambiente acolhedor da Clínica JA" />
+          </div>
+        </div>
 
         <div className="container location-grid">
           <div className="location-details">
+            <h3 className="location-heading">Onde Estamos</h3>
             <p>
               <strong>Endereço:</strong>
             </p>
@@ -327,7 +399,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="contact-box">
+          <div className="contact-box" id="agende-form">
             <h3>Agende Aqui</h3>
             <p>Preencha e envie seu agendamento. Vamos confirmar com você.</p>
 
