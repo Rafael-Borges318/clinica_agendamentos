@@ -1,14 +1,73 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AgendeAquiForm from "../components/AgendeAquiForm.jsx";
+import ProcedureModal from "../components/ProcedureModal.jsx";
 import { CardStack } from "../components/ui/card-stack.tsx";
 import { testimonials } from "../data/testimonials.js";
+import { procedures } from "../data/procedures.js";
+
+const SCROLL_DURATION_MS = 700;
+
+function easeInOutQuad(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeProcedure, setActiveProcedure] = useState(null);
+  const scrollAnimationRef = useRef(null);
 
-  function closeMenuIfLink(e) {
-    if (e.target.tagName === "A") setMenuOpen(false);
+  function scrollToId(id) {
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    if (scrollAnimationRef.current) {
+      cancelAnimationFrame(scrollAnimationRef.current);
+    }
+
+    const header = document.querySelector(".header");
+    const headerOffset = header ? header.offsetHeight : 0;
+    const destination =
+      target.getBoundingClientRect().top + window.scrollY - headerOffset - 12;
+
+    const start = window.scrollY;
+    const distance = destination - start;
+    let startTime = null;
+
+    function step(timestamp) {
+      if (startTime === null) startTime = timestamp;
+      const progress = Math.min(
+        (timestamp - startTime) / SCROLL_DURATION_MS,
+        1,
+      );
+
+      window.scrollTo(0, start + distance * easeInOutQuad(progress));
+
+      if (progress < 1) {
+        scrollAnimationRef.current = requestAnimationFrame(step);
+      } else {
+        scrollAnimationRef.current = null;
+      }
+    }
+
+    scrollAnimationRef.current = requestAnimationFrame(step);
   }
+
+  useEffect(() => {
+    function onAnchorClick(e) {
+      const link = e.target.closest("a[href^='#']");
+      if (!link) return;
+
+      const id = link.getAttribute("href").slice(1);
+      if (!id || !document.getElementById(id)) return;
+
+      e.preventDefault();
+      setMenuOpen(false);
+      scrollToId(id);
+    }
+
+    document.addEventListener("click", onAnchorClick);
+    return () => document.removeEventListener("click", onAnchorClick);
+  }, []);
 
   useEffect(() => {
     function onScroll() {
@@ -51,7 +110,6 @@ export default function Home() {
           <nav className="nav">
             <ul
               className={`nav-links ${menuOpen ? "open" : ""}`}
-              onClick={closeMenuIfLink}
               id="navLinks"
             >
               <li>
@@ -77,7 +135,7 @@ export default function Home() {
       <section className="hero" id="inicio">
         <div className="container hero-content">
           <div className="hero-text">
-            <p className="hero-tagline">✨ Clínica de Estética</p>
+            <p className="hero-tagline">Clínica de Estética</p>
             <h1>Realce sua beleza com a Clínica JA</h1>
             <p>
               Especialistas em procedimentos de estética facial e corporal,
@@ -104,82 +162,30 @@ export default function Home() {
         </p>
 
         <div className="container cards-grid">
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img src="img/Lash.png" alt="Lash Lifting" />
-              <div className="card-photo-overlay">
-                <h3>👁️ Lash Lifting</h3>
-                <p>Curvatura duradoura e natural por até 45 dias.</p>
+          {procedures.map((procedure) => (
+            <article
+              key={procedure.id}
+              className="card card-procedure"
+              role="button"
+              tabIndex={0}
+              aria-haspopup="dialog"
+              onClick={() => setActiveProcedure(procedure)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveProcedure(procedure);
+                }
+              }}
+            >
+              <div className="card-photo">
+                <img src={procedure.image} alt={procedure.alt} />
+                <div className="card-photo-overlay">
+                  <h3>{procedure.title}</h3>
+                  <p>{procedure.short}</p>
+                </div>
               </div>
-            </div>
-          </article>
-
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img src="img/Pele.png" alt="Limpeza de Pele" />
-              <div className="card-photo-overlay">
-                <h3>💆‍♀️ Limpeza de Pele</h3>
-                <p>
-                  Limpeza profunda e revitalizante, garantindo uma pele
-                  uniforme e hidratada.
-                </p>
-              </div>
-            </div>
-          </article>
-
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img src="img/Nano.png" alt="Nano Fios" />
-              <div className="card-photo-overlay">
-                <h3>🪄 Nano Fios</h3>
-                <p>
-                  Técnica avançada para correção de falhas nas sobrancelhas,
-                  durando de 6 meses a 1 ano e meio.
-                </p>
-              </div>
-            </div>
-          </article>
-
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img src="img/brow.png" alt="Brow Lamination" />
-              <div className="card-photo-overlay">
-                <h3>🌿 Brow Lamination</h3>
-                <p>
-                  Alinhamento dos fios para sobrancelhas modernas e definidas.
-                </p>
-              </div>
-            </div>
-          </article>
-
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img
-                src="img/Design.png"
-                alt="Design Personalizado de Sobrancelhas"
-              />
-              <div className="card-photo-overlay">
-                <h3>✏️ Design Personalizado</h3>
-                <p>
-                  Garante sobrancelhas harmônicas e alinhadas, podendo optar
-                  por coloração ou henna.
-                </p>
-              </div>
-            </div>
-          </article>
-
-          <article className="card card-procedure">
-            <div className="card-photo">
-              <img src="img/Clinica4.png" alt="Clínica JA" />
-              <div className="card-photo-overlay">
-                <h3>🏩 A Clínica</h3>
-                <p>
-                  Ambiente elegante, aconchegante e projetado para seu
-                  bem-estar.
-                </p>
-              </div>
-            </div>
-          </article>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -416,6 +422,11 @@ export default function Home() {
           <p className="footer-small">Desenvolvido com carinho.</p>
         </div>
       </footer>
+
+      <ProcedureModal
+        procedure={activeProcedure}
+        onClose={() => setActiveProcedure(null)}
+      />
     </>
   );
 }
