@@ -324,44 +324,42 @@ export default function Home() {
           Veja o que as clientes dizem sobre a JA.
         </p>
 
-        <div className="container">
-          <CardStack
-            items={testimonials}
-            autoAdvance
-            intervalMs={3500}
-            pauseOnHover
-            showDots
-            renderCard={(item) => (
-              <div className="relative h-full w-full">
-                <div className="absolute inset-0">
-                  <img
-                    src={item.imageSrc}
-                    alt={item.title}
-                    className="h-full w-full object-cover"
-                    draggable={false}
-                    loading="lazy"
-                  />
-                </div>
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
-                  <div
-                    className="mb-2 text-sm tracking-wide"
-                    aria-label={`${item.rating} de 5 estrelas`}
-                  >
-                    {"★".repeat(item.rating)}
-                    {"☆".repeat(5 - item.rating)}
-                  </div>
-                  <p className="text-sm italic sm:text-base">
-                    "{item.description}"
-                  </p>
-                  <p className="mt-2 text-sm font-semibold not-italic">
-                    {item.title}
-                  </p>
-                </div>
+        <CardStack
+          items={testimonials}
+          autoAdvance
+          intervalMs={3500}
+          pauseOnHover
+          showDots
+          renderCard={(item) => (
+            <div className="relative h-full w-full">
+              <div className="absolute inset-0">
+                <img
+                  src={item.imageSrc}
+                  alt={item.title}
+                  className="h-full w-full object-cover"
+                  draggable={false}
+                  loading="lazy"
+                />
               </div>
-            )}
-          />
-        </div>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
+                <div
+                  className="mb-2 text-sm tracking-wide"
+                  aria-label={`${item.rating} de 5 estrelas`}
+                >
+                  {"★".repeat(item.rating)}
+                  {"☆".repeat(5 - item.rating)}
+                </div>
+                <p className="text-sm italic sm:text-base">
+                  "{item.description}"
+                </p>
+                <p className="mt-2 text-sm font-semibold not-italic">
+                  {item.title}
+                </p>
+              </div>
+            </div>
+          )}
+        />
       </section>
 
       <section className="section section-contact-cta" id="localizacao">
