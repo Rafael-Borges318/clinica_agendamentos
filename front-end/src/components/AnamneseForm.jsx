@@ -87,7 +87,7 @@ function formatDataHora(date) {
 }
 
 // ── Componente ─────────────────────────────────────────────────────────────
-export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) {
+export default function AnamneseForm({ anamneseToken, tipo, servico_id, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -170,8 +170,11 @@ export default function AnamneseForm({ telefone, tipo, servico_id, onSuccess }) 
     try {
       const res = await fetch(`${API_URL}/api/anamneses`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telefone, servico_id, respostas }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anamneseToken}`,
+        },
+        body: JSON.stringify({ servico_id, respostas }),
       });
 
       const data = await res.json().catch(() => ({}));

@@ -9,7 +9,10 @@ export async function createAnamneseController(req, res, next) {
       return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
-    const result = await createAnamneseService(parsed.data);
+    const result = await createAnamneseService({
+      cliente_id: req.anamneseClienteId,
+      ...parsed.data,
+    });
     return res.status(201).json(result);
   } catch (err) {
     return next(err);

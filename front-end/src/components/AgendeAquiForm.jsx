@@ -155,11 +155,10 @@ export default function AgendeAquiForm() {
         servicos.find((s) => s.id === form.servico_id) || null;
       const servicoNome = servicoSelecionado?.nome || "Serviço";
       const nomeCliente = form.nome.trim();
-      const telefoneCliente = form.telefone.trim();
 
       if (data?.precisa_anamnese) {
         setDadosAnamnese({
-          telefone: telefoneCliente,
+          anamneseToken: data?.anamnese_token,
           servico_id: form.servico_id,
           tipo:
             data?.tipo_anamnese || servicoSelecionado?.tipo_anamnese || "geral",
@@ -201,7 +200,7 @@ Seu horário foi registrado com sucesso. Em breve entraremos em contato para con
     return (
       <div className="agende-form">
         <AnamneseForm
-          telefone={dadosAnamnese.telefone}
+          anamneseToken={dadosAnamnese.anamneseToken}
           servico_id={dadosAnamnese.servico_id}
           tipo={dadosAnamnese.tipo}
           onSuccess={() => {

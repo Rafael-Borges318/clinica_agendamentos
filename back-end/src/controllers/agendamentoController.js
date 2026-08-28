@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import {
   adminAgendamentosQuerySchema,
   createAgendamentoSchema,
@@ -11,6 +12,7 @@ import {
   listarAgendamentosAdmin,
   listarHorariosDisponiveis,
 } from "../services/agendamentoService.js";
+import { env } from "../config/env.js";
 
 export async function getAdminAgendamentos(req, res, next) {
   try {
@@ -74,7 +76,14 @@ export async function postAgendamento(req, res, next) {
     }
 
     const data = await criarAgendamento(parsed.data);
-    return res.status(201).json(data);
+
+    const anamneseToken = jwt.sign(
+      { sub: data.inserted.cliente_id, scope: "anamnese" },
+      env.JWT_SECRET,
+      { expiresIn: "30m", algorithm: "HS256" },
+    );
+
+    return res.status(201).json({ ...data, anamnese_token: anamneseToken });
   } catch (err) {
     return next(err);
   }
