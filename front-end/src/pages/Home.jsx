@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { User } from "lucide-react";
 import AgendeAquiForm from "../components/AgendeAquiForm.jsx";
 import ProcedureModal from "../components/ProcedureModal.jsx";
 import { CardStack } from "../components/ui/card-stack.tsx";
@@ -14,6 +15,7 @@ function easeInOutQuad(t) {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeProcedure, setActiveProcedure] = useState(null);
+  const [showClienteInfo, setShowClienteInfo] = useState(false);
   const scrollAnimationRef = useRef(null);
 
   function scrollToId(id) {
@@ -95,40 +97,51 @@ export default function Home() {
             <img src="img/Logo.jpeg" alt="Logo Clínica JA" />
           </div>
 
-          <button
-            className="nav-toggle"
-            type="button"
-            aria-label="Abrir menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <nav className="nav">
-            <ul
-              className={`nav-links ${menuOpen ? "open" : ""}`}
-              id="navLinks"
+          <div className="header-actions">
+            <button
+              className="user-icon-btn"
+              type="button"
+              aria-label="Área do cliente"
+              onClick={() => setShowClienteInfo(true)}
             >
-              <li>
-                <a href="#inicio">Início</a>
-              </li>
-              <li>
-                <a href="#procedimentos">Procedimentos</a>
-              </li>
-              <li>
-                <a href="#cursos">Cursos</a>
-              </li>
-              <li>
-                <a href="#clientes">Clientes</a>
-              </li>
-              <li>
-                <a href="#localizacao">Localização &amp; Contato</a>
-              </li>
-            </ul>
-          </nav>
+              <User size={20} strokeWidth={1.8} />
+            </button>
+
+            <button
+              className="nav-toggle"
+              type="button"
+              aria-label="Abrir menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+
+            <nav className="nav">
+              <ul
+                className={`nav-links ${menuOpen ? "open" : ""}`}
+                id="navLinks"
+              >
+                <li>
+                  <a href="#inicio">Início</a>
+                </li>
+                <li>
+                  <a href="#procedimentos">Procedimentos</a>
+                </li>
+                <li>
+                  <a href="#cursos">Cursos</a>
+                </li>
+                <li>
+                  <a href="#clientes">Clientes</a>
+                </li>
+                <li>
+                  <a href="#localizacao">Localização &amp; Contato</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </header>
 
@@ -318,50 +331,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section-testimonials" id="clientes">
-        <h2 className="section-title">Clientes Satisfeitas</h2>
-        <p className="section-subtitle">
-          Veja o que as clientes dizem sobre a JA.
-        </p>
-
-        <CardStack
-          items={testimonials}
-          autoAdvance
-          intervalMs={3500}
-          pauseOnHover
-          showDots
-          renderCard={(item) => (
-            <div className="relative h-full w-full">
-              <div className="absolute inset-0">
-                <img
-                  src={item.imageSrc}
-                  alt={item.title}
-                  className="h-full w-full object-cover"
-                  draggable={false}
-                  loading="lazy"
-                />
-              </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-              <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
-                <div
-                  className="mb-2 text-sm tracking-wide"
-                  aria-label={`${item.rating} de 5 estrelas`}
-                >
-                  {"★".repeat(item.rating)}
-                  {"☆".repeat(5 - item.rating)}
-                </div>
-                <p className="text-sm italic sm:text-base">
-                  "{item.description}"
-                </p>
-                <p className="mt-2 text-sm font-semibold not-italic">
-                  {item.title}
-                </p>
-              </div>
-            </div>
-          )}
-        />
-      </section>
-
       <section className="section section-contact-cta" id="localizacao">
         <div className="container contact-cta-banner">
           <div className="contact-cta-text">
@@ -370,9 +339,6 @@ export default function Home() {
               Agende sua avaliação e descubra, com todo o cuidado da JA, o
               procedimento ideal para realçar sua beleza natural.
             </p>
-            <a href="#agende-form" className="btn-primary">
-              Agendar Avaliação
-            </a>
           </div>
 
           <div className="contact-cta-photo">
@@ -425,6 +391,40 @@ export default function Home() {
         procedure={activeProcedure}
         onClose={() => setActiveProcedure(null)}
       />
+
+      {showClienteInfo && (
+        <div
+          className="procedure-modal-backdrop"
+          onClick={() => setShowClienteInfo(false)}
+          role="presentation"
+        >
+          <div
+            className="procedure-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cliente-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="procedure-modal-close"
+              aria-label="Fechar"
+              onClick={() => setShowClienteInfo(false)}
+            >
+              &times;
+            </button>
+
+            <div className="procedure-modal-content">
+              <h3 id="cliente-modal-title">Área do cliente</h3>
+              <p>
+                Em breve, por aqui você vai poder consultar seus
+                agendamentos, remarcar dia e horário e editar sua ficha de
+                anamnese. Essa área ainda está em desenvolvimento.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
