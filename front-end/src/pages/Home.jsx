@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import AgendeAquiForm from "../components/AgendeAquiForm.jsx";
 import ProcedureModal from "../components/ProcedureModal.jsx";
@@ -15,7 +16,6 @@ function easeInOutQuad(t) {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeProcedure, setActiveProcedure] = useState(null);
-  const [showClienteInfo, setShowClienteInfo] = useState(false);
   const scrollAnimationRef = useRef(null);
 
   function scrollToId(id) {
@@ -98,14 +98,13 @@ export default function Home() {
           </div>
 
           <div className="header-actions">
-            <button
+            <Link
+              to="/minha-conta"
               className="user-icon-btn"
-              type="button"
               aria-label="Área do cliente"
-              onClick={() => setShowClienteInfo(true)}
             >
               <User size={20} strokeWidth={1.8} />
-            </button>
+            </Link>
 
             <button
               className="nav-toggle"
@@ -391,40 +390,6 @@ export default function Home() {
         procedure={activeProcedure}
         onClose={() => setActiveProcedure(null)}
       />
-
-      {showClienteInfo && (
-        <div
-          className="procedure-modal-backdrop"
-          onClick={() => setShowClienteInfo(false)}
-          role="presentation"
-        >
-          <div
-            className="procedure-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cliente-modal-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="procedure-modal-close"
-              aria-label="Fechar"
-              onClick={() => setShowClienteInfo(false)}
-            >
-              &times;
-            </button>
-
-            <div className="procedure-modal-content">
-              <h3 id="cliente-modal-title">Área do cliente</h3>
-              <p>
-                Em breve, por aqui você vai poder consultar seus
-                agendamentos, remarcar dia e horário e editar sua ficha de
-                anamnese. Essa área ainda está em desenvolvimento.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

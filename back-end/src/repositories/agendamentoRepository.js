@@ -40,14 +40,24 @@ export async function listAdminAgendamentos(
   return data || [];
 }
 
-export async function findAgendamentosByDia(startDayISO, endDayISO) {
-  const { data, error } = await supabase
+export async function findAgendamentosByDia(
+  startDayISO,
+  endDayISO,
+  excludeId = null,
+) {
+  let query = supabase
     .from("agendamentos")
-    .select("inicio, fim, status")
+    .select("id, inicio, fim, status")
     .gte("inicio", startDayISO)
     .lte("inicio", endDayISO)
     .neq("status", "cancelado")
     .order("inicio", { ascending: true });
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw new Error(error.message);
   return data || [];
@@ -148,6 +158,95 @@ export async function findUltimaVisitaCliente(clienteId) {
     .order("inicio", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function findAgendamentoPorTelefoneECodigo(telefone, codigo) {
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select("id, cliente_id, telefone, codigo_confirmacao")
+    .eq("telefone", telefone)
+    .eq("codigo_confirmacao", codigo)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function findAgendamentoById(id) {
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select(
+      `
+      id,
+      cliente_id,
+      nome,
+      telefone,
+      inicio,
+      fim,
+      status,
+      servico_id,
+      servicos:servico_id (
+        id,
+        nome,
+        duracao_min,
+        exige_anamnese,
+        tipo_anamnese
+      )
+    `,
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function findMeusAgendamentos(clienteId) {
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .select(
+      `
+      id,
+      inicio,
+      fim,
+      status,
+      servico_id,
+      servicos:servico_id (
+        id,
+        nome,
+        exige_anamnese,
+        tipo_anamnese
+      )
+    `,
+    )
+    .eq("cliente_id", clienteId)
+    .order("inicio", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+export async function updateAgendamentoHorario(id, inicioISO, fimISO) {
+  const { data, error } = await supabase
+    .from("agendamentos")
+    .update({ inicio: inicioISO, fim: fimISO, status: "pendente" })
+    .eq("id", id)
+    .select(
+      `
+      id,
+      cliente_id,
+      nome,
+      telefone,
+      inicio,
+      fim,
+      status,
+      servico_id
+    `,
+    )
+    .single();
 
   if (error) throw new Error(error.message);
   return data;

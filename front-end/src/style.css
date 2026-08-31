@@ -1153,6 +1153,38 @@ body::after {
   white-space: pre-line;
 }
 
+.agende-codigo-box {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fdf9ec;
+  border: 1px solid var(--gold);
+  text-align: center;
+}
+
+.agende-codigo-box span {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.agende-codigo-box strong {
+  display: block;
+  font-size: 1.6rem;
+  letter-spacing: 0.15em;
+  color: var(--text-dark);
+  margin: 4px 0;
+}
+
+.agende-codigo-box small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .agende-whats {
   margin-top: 8px;
   font-size: 13px;
@@ -1757,6 +1789,161 @@ body::after {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ===== ÁREA DO CLIENTE (/minha-conta) ===== */
+.conta-page {
+  min-height: 100vh;
+  padding: 100px 0 60px;
+  background: linear-gradient(135deg, #faf8f2 0%, #fdf9ec 100%);
+}
+
+.conta-container {
+  max-width: 640px;
+}
+
+.conta-voltar {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.conta-voltar:hover {
+  color: var(--gold);
+}
+
+.conta-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 2rem;
+}
+
+.conta-card h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-dark);
+}
+
+.conta-subtitle {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.conta-erro {
+  background: #fdeaea;
+  border: 1px solid #f3b7b7;
+  color: #b42318;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin: 10px 0;
+}
+
+.conta-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.conta-sair {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.conta-sair:hover {
+  border-color: var(--gold);
+  color: var(--text-dark);
+}
+
+.conta-secao-titulo {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.conta-item {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.conta-item-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.conta-item-info strong {
+  color: var(--text-dark);
+}
+
+.conta-item-info span:not(.badge) {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.conta-item-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.conta-item-actions .btn-outline {
+  margin-top: 0;
+}
+
+.conta-painel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.conta-painel-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.conta-painel-actions .btn-outline {
+  margin-top: 0;
+}
+
+.conta-cancelar {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  text-decoration: underline;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .conta-page {
+    padding-top: 84px;
+  }
+
+  .conta-card {
+    padding: 1.25rem;
   }
 }
 

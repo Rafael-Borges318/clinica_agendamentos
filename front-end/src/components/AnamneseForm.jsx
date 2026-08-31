@@ -86,48 +86,69 @@ function formatDataHora(date) {
   });
 }
 
+const RESPOSTAS_PADRAO = {
+  // Seção 1
+  idade: "",
+  profissao: "",
+  como_nos_conheceu: "",
+  // Seção 2
+  doencas_diagnosticadas: [],
+  outras_condicoes_saude: "",
+  gestante_amamentando: "",
+  usa_medicacao_continua: "",
+  qual_medicacao_continua: "",
+  reacao_alergica_produto: "",
+  descricao_alergia: "",
+  // Seção 3
+  tipo_pele: "",
+  doencas_pele: [],
+  sensibilidade_problema_ocular: "",
+  descricao_problema_ocular: "",
+  exposicao_solar_frequente: "",
+  usa_protetor_solar: "",
+  // Seção 4
+  realizou_procedimento_antes: "",
+  onde_quando_procedimento_anterior: "",
+  procedimento_ultimos_30_dias: "",
+  qual_procedimento_recente: "",
+  reacao_adversa_estetica: "",
+  descricao_reacao_adversa: "",
+  uso_cigarro_alcool: "",
+  // Seção 5
+  expectativa_procedimento: "",
+  observacoes_adicionais: "",
+  // Seção 6
+  consentimento: false,
+};
+
 // ── Componente ─────────────────────────────────────────────────────────────
-export default function AnamneseForm({ anamneseToken, tipo, servico_id, onSuccess }) {
+// `endpoint` e `token` permitem reaproveitar o formulário tanto logo após o
+// agendamento (token de escopo "anamnese", POST /api/anamneses) quanto na
+// área do cliente para reeditar a ficha (token de escopo "cliente", POST
+// /api/minha-conta/anamnese). `respostasIniciais` prefila o formulário com a
+// última ficha enviada — o consentimento sempre volta desmarcado, pois cada
+// envio registra uma nova assinatura com data/hora própria.
+export default function AnamneseForm({
+  anamneseToken,
+  tipo,
+  servico_id,
+  onSuccess,
+  endpoint = "/api/anamneses",
+  respostasIniciais = null,
+  titulo = "Ficha de Anamnese",
+  subtitulo = "Preencha as informações abaixo para finalizar seu agendamento. Suas respostas são confidenciais e essenciais para a segurança do procedimento.",
+}) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
   // Captura o momento em que o cliente lê o termo de consentimento
   const [dataHoraConsentimento] = useState(() => formatDataHora(new Date()));
 
-  const [respostas, setRespostas] = useState({
-    // Seção 1
-    idade: "",
-    profissao: "",
-    como_nos_conheceu: "",
-    // Seção 2
-    doencas_diagnosticadas: [],
-    outras_condicoes_saude: "",
-    gestante_amamentando: "",
-    usa_medicacao_continua: "",
-    qual_medicacao_continua: "",
-    reacao_alergica_produto: "",
-    descricao_alergia: "",
-    // Seção 3
-    tipo_pele: "",
-    doencas_pele: [],
-    sensibilidade_problema_ocular: "",
-    descricao_problema_ocular: "",
-    exposicao_solar_frequente: "",
-    usa_protetor_solar: "",
-    // Seção 4
-    realizou_procedimento_antes: "",
-    onde_quando_procedimento_anterior: "",
-    procedimento_ultimos_30_dias: "",
-    qual_procedimento_recente: "",
-    reacao_adversa_estetica: "",
-    descricao_reacao_adversa: "",
-    uso_cigarro_alcool: "",
-    // Seção 5
-    expectativa_procedimento: "",
-    observacoes_adicionais: "",
-    // Seção 6
+  const [respostas, setRespostas] = useState(() => ({
+    ...RESPOSTAS_PADRAO,
+    ...(respostasIniciais || {}),
     consentimento: false,
-  });
+  }));
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -168,7 +189,7 @@ export default function AnamneseForm({ anamneseToken, tipo, servico_id, onSucces
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/anamneses`, {
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -201,12 +222,8 @@ export default function AnamneseForm({ anamneseToken, tipo, servico_id, onSucces
 
   return (
     <form onSubmit={handleSubmit} className="anamnese-form">
-      <h2 className="anamnese-title">Ficha de Anamnese</h2>
-      <p className="anamnese-subtitle">
-        Preencha as informações abaixo para finalizar seu agendamento. Suas
-        respostas são confidenciais e essenciais para a segurança do
-        procedimento.
-      </p>
+      <h2 className="anamnese-title">{titulo}</h2>
+      <p className="anamnese-subtitle">{subtitulo}</p>
 
       {/* ══ 1. DADOS PESSOAIS ══ */}
       <div style={S.secao}>

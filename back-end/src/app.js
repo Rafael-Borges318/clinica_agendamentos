@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
 import servicosRoutes from "./routes/servicos.js";
 import anamnesesRoutes from "./routes/anamneses.js";
+import minhaContaRoutes from "./routes/minhaConta.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -57,6 +58,7 @@ app.use("/api", authRoutes);
 app.use("/api", agendamentosRoutes);
 app.use("/api", servicosRoutes);
 app.use("/api/anamneses", anamnesesRoutes);
+app.use("/api/minha-conta", minhaContaRoutes);
 
 app.use((req, res) => {
   return res.status(404).json({ error: "Rota não encontrada" });

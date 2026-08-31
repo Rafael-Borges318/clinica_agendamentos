@@ -25,9 +25,106 @@ import {
   createCliente,
 } from "../repositories/clienteRepository.js";
 import { findAnamneseValida } from "../repositories/anamneseRepository.js";
+import { gerarCodigoConfirmacao } from "../utils/codigoConfirmacao.js";
 
 const TZ = "-03:00";
 const STEP_MIN = 30;
+
+// Valida um horário candidato (dentro do expediente, granularidade de 30min,
+// não é no passado, não conflita com outro agendamento) e devolve o
+// inicio/fim já resolvidos em ISO. Compartilhada entre criar e remarcar
+// agendamento. `excludeAgendamentoId` evita que o próprio agendamento
+// (ao ser remarcado) conte como conflito contra si mesmo.
+export async function resolverHorarioValido({
+  servico,
+  inicio,
+  excludeAgendamentoId = null,
+}) {
+  const duracaoMin = Number(servico.duracao_min);
+  const inicioDate = new Date(inicio);
+
+  if (Number.isNaN(inicioDate.getTime())) {
+    throw buildError("Campo 'inicio' inválido (ISO).", 400);
+  }
+
+  const minuto = inicioDate.getMinutes();
+  if (!(minuto === 0 || minuto === 30)) {
+    throw buildError(
+      "Horário inválido: use apenas slots de 30 em 30 (ex: 16:00 ou 16:30).",
+      400,
+    );
+  }
+
+  const diaStr = inicioDate.toLocaleDateString("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const hojeStr = new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  });
+
+  if (diaStr < hojeStr) {
+    throw buildError("Não é possível agendar em datas passadas.", 400);
+  }
+
+  const dow = new Date(`${diaStr}T00:00:00${TZ}`).getDay();
+  const windows = getWindowsForDow(dow);
+
+  if (windows.length === 0) {
+    throw buildError("Clínica fechada neste dia.", 400);
+  }
+
+  const hh = String(inicioDate.getHours()).padStart(2, "0");
+  const mm = String(inicioDate.getMinutes()).padStart(2, "0");
+  const inicioMs = new Date(`${diaStr}T${hh}:${mm}:00${TZ}`).getTime();
+  const durMs = duracaoMin * 60 * 1000;
+  const fimMs = inicioMs + durMs;
+
+  const dentroDeAlgumaJanela = windows.some(([wStart, wEnd]) => {
+    const wStartMs = toMsLocal(diaStr, wStart, TZ);
+    const wEndMs = toMsLocal(diaStr, wEnd, TZ);
+    return inicioMs >= wStartMs && fimMs <= wEndMs;
+  });
+
+  if (!dentroDeAlgumaJanela) {
+    throw buildError("Fora do horário de funcionamento.", 400);
+  }
+
+  if (diaStr === hojeStr) {
+    const nowMs = Date.now();
+    const minStartMs = ceilToStep(nowMs, STEP_MIN);
+
+    if (inicioMs < minStartMs) {
+      throw buildError(
+        "Não é possível agendar em horário passado (para hoje).",
+        400,
+      );
+    }
+  }
+
+  const startDayISO = toISO(diaStr, "00:00", TZ);
+  const endDayISO = toISO(diaStr, "23:59", TZ);
+
+  const ags = await findAgendamentosByDia(startDayISO, endDayISO, excludeAgendamentoId);
+
+  const conflita = ags.some((a) => {
+    const aIni = new Date(a.inicio).getTime();
+    const aFim = new Date(a.fim).getTime();
+    return overlaps(inicioMs, fimMs, aIni, aFim);
+  });
+
+  if (conflita) {
+    throw buildError(
+      "Horário indisponível — conflito com outro agendamento.",
+      409,
+    );
+  }
+
+  return {
+    inicioISO: new Date(inicioMs).toISOString(),
+    fimISO: new Date(fimMs).toISOString(),
+  };
+}
 
 export async function listarAgendamentosAdmin(dia) {
   let start = null;
@@ -182,20 +279,6 @@ export async function criarAgendamento(input) {
     throw buildError("Telefone inválido.", 400);
   }
 
-  const inicioDate = new Date(inicio);
-
-  if (Number.isNaN(inicioDate.getTime())) {
-    throw buildError("Campo 'inicio' inválido (ISO).", 400);
-  }
-
-  const minuto = inicioDate.getMinutes();
-  if (!(minuto === 0 || minuto === 30)) {
-    throw buildError(
-      "Horário inválido: use apenas slots de 30 em 30 (ex: 16:00 ou 16:30).",
-      400,
-    );
-  }
-
   const servico = await getServicoValidoById(servico_id);
   const duracaoMin = Number(servico.duracao_min);
 
@@ -214,70 +297,10 @@ export async function criarAgendamento(input) {
     }
   }
 
-  const diaStr = inicioDate.toLocaleDateString("en-CA", {
-    timeZone: "America/Sao_Paulo",
+  const { inicioISO, fimISO } = await resolverHorarioValido({
+    servico,
+    inicio,
   });
-
-  const hojeStr = new Date().toLocaleDateString("en-CA", {
-    timeZone: "America/Sao_Paulo",
-  });
-
-  if (diaStr < hojeStr) {
-    throw buildError("Não é possível agendar em datas passadas.", 400);
-  }
-
-  const dow = new Date(`${diaStr}T00:00:00${TZ}`).getDay();
-  const windows = getWindowsForDow(dow);
-
-  if (windows.length === 0) {
-    throw buildError("Clínica fechada neste dia.", 400);
-  }
-
-  const hh = String(inicioDate.getHours()).padStart(2, "0");
-  const mm = String(inicioDate.getMinutes()).padStart(2, "0");
-  const inicioMs = new Date(`${diaStr}T${hh}:${mm}:00${TZ}`).getTime();
-  const durMs = duracaoMin * 60 * 1000;
-  const fimMs = inicioMs + durMs;
-
-  const dentroDeAlgumaJanela = windows.some(([wStart, wEnd]) => {
-    const wStartMs = toMsLocal(diaStr, wStart, TZ);
-    const wEndMs = toMsLocal(diaStr, wEnd, TZ);
-    return inicioMs >= wStartMs && fimMs <= wEndMs;
-  });
-
-  if (!dentroDeAlgumaJanela) {
-    throw buildError("Fora do horário de funcionamento.", 400);
-  }
-
-  if (diaStr === hojeStr) {
-    const nowMs = Date.now();
-    const minStartMs = ceilToStep(nowMs, STEP_MIN);
-
-    if (inicioMs < minStartMs) {
-      throw buildError(
-        "Não é possível agendar em horário passado (para hoje).",
-        400,
-      );
-    }
-  }
-
-  const startDayISO = toISO(diaStr, "00:00", TZ);
-  const endDayISO = toISO(diaStr, "23:59", TZ);
-
-  const ags = await findAgendamentosByDia(startDayISO, endDayISO);
-
-  const conflita = ags.some((a) => {
-    const aIni = new Date(a.inicio).getTime();
-    const aFim = new Date(a.fim).getTime();
-    return overlaps(inicioMs, fimMs, aIni, aFim);
-  });
-
-  if (conflita) {
-    throw buildError("Horário indisponível — conflito com outro agendamento.", 409);
-  }
-
-  const inicioISO = new Date(inicioMs).toISOString();
-  const fimISO = new Date(fimMs).toISOString();
 
   let inserted;
   try {
@@ -289,6 +312,7 @@ export async function criarAgendamento(input) {
       nome,
       telefone,
       status: "pendente",
+      codigo_confirmacao: gerarCodigoConfirmacao(),
     });
   } catch (err) {
     const msg = err.message || "";
@@ -329,6 +353,7 @@ export async function criarAgendamento(input) {
         telefone,
         status: "pendente",
         parent_id: inserted.id,
+        codigo_confirmacao: gerarCodigoConfirmacao(),
       });
 
       return { inserted, manutencao, precisa_anamnese: precisaAnamnese };

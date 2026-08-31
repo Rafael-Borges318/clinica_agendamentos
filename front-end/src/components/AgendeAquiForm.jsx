@@ -14,6 +14,7 @@ export default function AgendeAquiForm() {
 
   const [mostrarAnamnese, setMostrarAnamnese] = useState(false);
   const [dadosAnamnese, setDadosAnamnese] = useState(null);
+  const [codigoConfirmacao, setCodigoConfirmacao] = useState("");
 
   const [form, setForm] = useState({
     nome: "",
@@ -155,6 +156,9 @@ export default function AgendeAquiForm() {
         servicos.find((s) => s.id === form.servico_id) || null;
       const servicoNome = servicoSelecionado?.nome || "Serviço";
       const nomeCliente = form.nome.trim();
+      const codigo = data?.inserted?.codigo_confirmacao || "";
+
+      setCodigoConfirmacao(codigo);
 
       if (data?.precisa_anamnese) {
         setDadosAnamnese({
@@ -166,6 +170,7 @@ export default function AgendeAquiForm() {
           servicoNome,
           dataBR,
           horarioLabel,
+          codigo,
         });
 
         setMostrarAnamnese(true);
@@ -237,6 +242,16 @@ Seu horário foi registrado e em breve entraremos em contato para confirmação.
         </button>
 
         {msg && <p className="agende-msg">{msg}</p>}
+        {codigoConfirmacao && (
+          <div className="agende-codigo-box">
+            <span>Seu código de confirmação</span>
+            <strong>{codigoConfirmacao}</strong>
+            <small>
+              Guarde esse código — com ele e seu telefone você acessa a Área
+              do Cliente para ver, remarcar ou editar sua anamnese.
+            </small>
+          </div>
+        )}
       </div>
     );
   }
@@ -332,6 +347,16 @@ Seu horário foi registrado e em breve entraremos em contato para confirmação.
       </button>
 
       {msg && <p className="agende-msg">{msg}</p>}
+      {codigoConfirmacao && (
+        <div className="agende-codigo-box">
+          <span>Seu código de confirmação</span>
+          <strong>{codigoConfirmacao}</strong>
+          <small>
+            Guarde esse código — com ele e seu telefone você acessa a Área do
+            Cliente para ver, remarcar ou editar sua anamnese.
+          </small>
+        </div>
+      )}
 
       <a
         href="https://wa.me/5551995262780"
