@@ -1,11 +1,15 @@
 import {
   clienteLoginSchema,
   remarcarAgendamentoSchema,
+  cadastroSenhaSchema,
+  loginSenhaSchema,
 } from "../schemas/clienteAreaSchema.js";
 import { createAnamneseSchema } from "../schemas/anamneseSchema.js";
 import { uuidSchema } from "../schemas/agendamentoSchema.js";
 import {
   loginCliente,
+  cadastrarSenhaCliente,
+  loginClienteSenha,
   listarMeusAgendamentos,
   remarcarMeuAgendamento,
   buscarMinhaAnamnese,
@@ -21,6 +25,36 @@ export async function postLoginCliente(req, res, next) {
     }
 
     const result = await loginCliente(parsed.data);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function postCadastroSenhaCliente(req, res, next) {
+  try {
+    const parsed = cadastroSenhaSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const result = await cadastrarSenhaCliente(parsed.data);
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function postLoginSenhaCliente(req, res, next) {
+  try {
+    const parsed = loginSenhaSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const result = await loginClienteSenha(parsed.data);
     return res.status(200).json(result);
   } catch (err) {
     return next(err);

@@ -3,6 +3,8 @@ import rateLimit from "express-rate-limit";
 import { clienteAuthMiddleware } from "../middleware/clienteAuthMiddleware.js";
 import {
   postLoginCliente,
+  postCadastroSenhaCliente,
+  postLoginSenhaCliente,
   getMeusAgendamentos,
   patchMeuAgendamento,
   getMinhaAnamnese,
@@ -11,8 +13,7 @@ import {
 
 const router = express.Router();
 
-// Limite apertado: o código de confirmação é a única proteção contra
-// tentativa e erro, então o login precisa de rate limit agressivo.
+
 const loginLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
@@ -22,6 +23,8 @@ const loginLimiter = rateLimit({
 });
 
 router.post("/login", loginLimiter, postLoginCliente);
+router.post("/cadastro", loginLimiter, postCadastroSenhaCliente);
+router.post("/login-senha", loginLimiter, postLoginSenhaCliente);
 
 router.get("/agendamentos", clienteAuthMiddleware, getMeusAgendamentos);
 router.patch("/agendamentos/:id", clienteAuthMiddleware, patchMeuAgendamento);

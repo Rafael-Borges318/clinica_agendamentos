@@ -85,7 +85,196 @@ export default function MinhaConta() {
   );
 }
 
+const ABAS_LOGIN = [
+  { id: "senha", label: "Entrar" },
+  { id: "cadastro", label: "Criar senha" },
+  { id: "codigo", label: "Tenho um código" },
+];
+
 function Login({ onLogin }) {
+  const [aba, setAba] = useState("senha");
+
+  return (
+    <div className="conta-card">
+      <h1>Área do Cliente</h1>
+      <p className="conta-subtitle">
+        Consulte seus horários, remarque e edite sua ficha de anamnese.
+      </p>
+
+      <div className="conta-tabs">
+        {ABAS_LOGIN.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            className={`conta-tab ${aba === a.id ? "active" : ""}`}
+            onClick={() => setAba(a.id)}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+
+      {aba === "senha" && <LoginSenhaForm onLogin={onLogin} />}
+      {aba === "cadastro" && (
+        <CadastroSenhaForm onLogin={onLogin} onCriado={() => setAba("senha")} />
+      )}
+      {aba === "codigo" && <LoginCodigoForm onLogin={onLogin} />}
+    </div>
+  );
+}
+
+function LoginSenhaForm({ onLogin }) {
+  const [form, setForm] = useState({ email: "", senha: "" });
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  function onChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/minha-conta/login-senha`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setErro(data?.error || "Não foi possível entrar.");
+        return;
+      }
+
+      onLogin(data.cliente_token);
+    } catch {
+      setErro("Falha ao conectar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="agende-form">
+      <input
+        name="email"
+        type="email"
+        value={form.email}
+        onChange={onChange}
+        placeholder="Seu email"
+        required
+      />
+      <input
+        name="senha"
+        type="password"
+        value={form.senha}
+        onChange={onChange}
+        placeholder="Sua senha"
+        required
+      />
+
+      {erro && <p className="conta-erro">{erro}</p>}
+
+      <button className="btn-outline" disabled={loading}>
+        {loading ? "Entrando..." : "Entrar"}
+      </button>
+    </form>
+  );
+}
+
+function CadastroSenhaForm({ onLogin, onCriado }) {
+  const [form, setForm] = useState({
+    nome: "",
+    telefone: "",
+    email: "",
+    senha: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  function onChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/minha-conta/cadastro`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setErro(data?.error || "Não foi possível criar sua senha.");
+        if (res.status === 409) onCriado();
+        return;
+      }
+
+      onLogin(data.cliente_token);
+    } catch {
+      setErro("Falha ao conectar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="agende-form">
+      <input
+        name="nome"
+        value={form.nome}
+        onChange={onChange}
+        placeholder="Seu nome"
+        required
+      />
+      <input
+        name="telefone"
+        value={form.telefone}
+        onChange={onChange}
+        placeholder="WhatsApp usado no agendamento (Ex: (51) 99999-9999)"
+        required
+      />
+      <input
+        name="email"
+        type="email"
+        value={form.email}
+        onChange={onChange}
+        placeholder="Seu email"
+        required
+      />
+      <input
+        name="senha"
+        type="password"
+        value={form.senha}
+        onChange={onChange}
+        placeholder="Crie uma senha (mín. 6 caracteres)"
+        minLength={6}
+        required
+      />
+
+      {erro && <p className="conta-erro">{erro}</p>}
+
+      <button className="btn-outline" disabled={loading}>
+        {loading ? "Criando..." : "Criar senha e entrar"}
+      </button>
+    </form>
+  );
+}
+
+function LoginCodigoForm({ onLogin }) {
   const [form, setForm] = useState({ telefone: "", codigo_confirmacao: "" });
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -123,14 +312,7 @@ function Login({ onLogin }) {
   }
 
   return (
-    <div className="conta-card">
-      <h1>Área do Cliente</h1>
-      <p className="conta-subtitle">
-        Entre com o telefone usado no agendamento e o código de confirmação
-        que apareceu na tela ao agendar. Com isso você consulta seus
-        horários, remarca e edita sua ficha de anamnese.
-      </p>
-
+    <>
       <form onSubmit={onSubmit} className="agende-form">
         <input
           name="telefone"
@@ -157,10 +339,10 @@ function Login({ onLogin }) {
       </form>
 
       <p className="agende-hint">
-        Não tem o código à mão? Ele foi mostrado na confirmação do
-        agendamento. Se perdeu, fale conosco pelo WhatsApp.
+        O código aparece na tela de confirmação logo depois de agendar. Se
+        perdeu, fale conosco pelo WhatsApp.
       </p>
-    </div>
+    </>
   );
 }
 

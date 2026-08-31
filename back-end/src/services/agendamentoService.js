@@ -24,7 +24,7 @@ import {
   findClienteByTelefone,
   createCliente,
 } from "../repositories/clienteRepository.js";
-import { findAnamneseValida } from "../repositories/anamneseRepository.js";
+import { findAnamneseMaisRecente } from "../repositories/anamneseRepository.js";
 import { gerarCodigoConfirmacao } from "../utils/codigoConfirmacao.js";
 
 const TZ = "-03:00";
@@ -152,8 +152,8 @@ export async function listarAgendamentosAdmin(dia) {
           countVisitasClienteTotal(ag.cliente_id),
           countVisitasClienteNoMes(ag.cliente_id, inicioMes, fimMes),
           findUltimaVisitaCliente(ag.cliente_id),
-          ag.servicos?.tipo_anamnese
-            ? findAnamneseValida(ag.cliente_id, ag.servicos.tipo_anamnese)
+          ag.servicos?.exige_anamnese
+            ? findAnamneseMaisRecente(ag.cliente_id)
             : null,
           findHistoricoCliente(ag.cliente_id),
         ]);
@@ -291,7 +291,7 @@ export async function criarAgendamento(input) {
   let precisaAnamnese = false;
 
   if (servico.exige_anamnese) {
-    const anamnese = await findAnamneseValida(cliente.id, servico.tipo_anamnese);
+    const anamnese = await findAnamneseMaisRecente(cliente.id);
     if (!anamnese) {
       precisaAnamnese = true;
     }
